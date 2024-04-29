@@ -1,0 +1,11 @@
+{
+  "name": "pallace-backend",
+  "version": "1.0.0",
+  "description": "Pallace is a financial health dashboard for SaaS startups",
+  "main": "main.ts",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "Hatisi Bogdan",
+  "license": "ISC"
+}
