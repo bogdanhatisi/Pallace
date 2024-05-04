@@ -2,9 +2,9 @@ name: Pallace CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build-and-test:
@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x,20.x]  # Adjust node versions as necessary
+        node-version: [20.x] # Adjust node versions as necessary
 
     steps:
       - name: Checkout Code
@@ -33,3 +33,7 @@ jobs:
         run: npm install
         working-directory: ./pallace-frontend
 
+      # Lint code
+      - name: Lint Code
+        run: npm run lint
+        working-directory: ./pallace-backend
