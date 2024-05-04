@@ -1,0 +1,35 @@
+name: Pallace CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x,20.x]  # Adjust node versions as necessary
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      # Install backend dependencies and run tests
+      - name: Install Backend Dependencies
+        run: npm install
+        working-directory: ./pallace-backend
+
+      # Install frontend dependencies and run tests
+      - name: Install Frontend Dependencies
+        run: npm install
+        working-directory: ./pallace-frontend
+
