@@ -24,6 +24,10 @@
   "dependencies": {
     "@prisma/client": "^5.13.0",
     "fastify": "^4.26.2",
-    "prisma": "^5.13.0"
+    "fastify-jwt": "^4.2.0",
+    "fastify-swagger": "^5.2.0",
+    "fastify-zod": "^1.4.0",
+    "prisma": "^5.13.0",
+    "zod": "^3.23.6"
   }
 }
