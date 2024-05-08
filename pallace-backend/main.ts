@@ -1,29 +1,16 @@
-import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import buildServer from './server';
 
-const app = express();
-const port = 3000;
-const prisma = new PrismaClient();
+const server = buildServer();
 
-// Import any additional modules or types you need
+async function main() {
+  try {
+    await server.listen(3000, '0.0.0.0');
 
-// Define the type for the request and response objects
-type Request = express.Request;
-type Response = express.Response;
+    console.log(`Server ready at http://localhost:3000`);
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
+  }
+}
 
-// Add your routes and route handlers
-app.get('/', async (req: Request, res: Response) => {
-  await prisma.user.create({
-    data: {
-      name: 'Alice',
-      email: 'alice@prisma.io'
-    }
-  });
-  const allUsers = await prisma.user.findMany();
-  res.send(allUsers);
-});
-
-// Start the server
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+main();
