@@ -3,6 +3,27 @@ import { userRoutes } from './routes/user.route';
 import { userSchemas } from './models/user.model';
 import fjwt, { FastifyJWT } from '@fastify/jwt';
 import fCookie from '@fastify/cookie';
+import { JWT } from '@fastify/jwt';
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    jwt: JWT;
+  }
+  export interface FastifyInstance {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    authenticate: any;
+  }
+}
+type UserPayload = {
+  id: string;
+  email: string;
+  name: string;
+};
+declare module '@fastify/jwt' {
+  interface FastifyJWT {
+    user: UserPayload;
+  }
+}
 
 const app = Fastify({ logger: true }); // you can disable logging
 
