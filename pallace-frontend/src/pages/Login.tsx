@@ -21,7 +21,7 @@ const Login: React.FC = () => {
       const response = await loginUser(formData);
       alert("Login successful");
       console.log(response);
-      navigate("/");
+      navigate("/home");
     } catch (error) {
       console.error("Error logging in", error);
     }
