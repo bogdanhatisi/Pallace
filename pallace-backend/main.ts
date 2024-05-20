@@ -1,27 +1,57 @@
-import Fastify from 'fastify';
-import userRoutes from './routes/user.route';
+import Fastify, { FastifyReply, FastifyRequest } from 'fastify';
+import { userRoutes } from './routes/user.route';
 import { userSchemas } from './models/user.model';
+import fjwt, { FastifyJWT } from '@fastify/jwt';
+import fCookie from '@fastify/cookie';
 
-export const server = Fastify();
+const app = Fastify({ logger: true }); // you can disable logging
 
-server.get('/healthcheck', async function () {
-  return { status: 'OK' };
+// graceful shutdown
+const listeners = ['SIGINT', 'SIGTERM'];
+listeners.forEach(signal => {
+  process.on(signal, async () => {
+    await app.close();
+    process.exit(0);
+  });
 });
 
 async function main() {
-  for (const schema of userSchemas) {
-    server.addSchema(schema);
+  app.get('/healthcheck', (req, res) => {
+    res.send({ message: 'Success' });
+  });
+  // jwt
+  app.register(fjwt, { secret: 'supersecretcode-CHANGE_THIS-USE_ENV_FILE' });
+  app.decorate(
+    'authenticate',
+    async (req: FastifyRequest, reply: FastifyReply) => {
+      const token = req.cookies.access_token;
+      if (!token) {
+        return reply.status(401).send({ message: 'Authentication required' });
+      }
+      // here decoded will be a different type by default but we want it to be of user-payload type
+      const decoded = req.jwt.verify<FastifyJWT['user']>(token);
+      req.user = decoded;
+    }
+  );
+  app.addHook('preHandler', (req, res, next) => {
+    // here we are
+    req.jwt = app.jwt;
+    return next();
+  });
+  // cookies
+  app.register(fCookie, {
+    secret: 'some-secret-key',
+    hook: 'preHandler'
+  });
+  // routes
+  app.register(userRoutes, { prefix: 'api/users' });
+  for (const schema of [...userSchemas]) {
+    app.addSchema(schema);
   }
-  server.register(userRoutes, { prefix: '/api/users' });
-
-  try {
-    await server.listen({
-      port: 3000
-    });
-    console.log('Server is running on port 3000');
-  } catch (e) {
-    console.error(e);
-    process.exit(1);
-  }
+  await app.listen({
+    port: 8000,
+    host: '0.0.0.0'
+  });
 }
+
 main();

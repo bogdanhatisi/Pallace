@@ -20,16 +20,18 @@
     "express": "^4.19.2",
     "nvm": "^0.0.4",
     "prettier": "^3.2.5",
+    "prisma": "^5.14.0",
     "ts-node": "^10.9.2"
   },
   "dependencies": {
+    "@fastify/cookie": "^9.3.1",
     "@fastify/jwt": "^8.0.1",
     "@prisma/client": "^5.13.0",
+    "bcrypt": "^5.1.1",
     "fastify": "^4.26.2",
     "fastify-jwt": "^4.2.0",
     "fastify-swagger": "^5.2.0",
     "fastify-zod": "^1.4.0",
-    "prisma": "^5.13.0",
     "zod": "^3.23.6"
   }
 }

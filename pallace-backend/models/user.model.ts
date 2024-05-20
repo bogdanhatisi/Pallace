@@ -1,29 +1,20 @@
 import { z } from 'zod';
 import { buildJsonSchemas } from 'fastify-zod';
-
-const userCore = {
-  email: z
-    .string({
-      required_error: 'Email is required',
-      invalid_type_error: 'Email must be a string'
-    })
-    .email(),
-  name: z.string()
-};
-
+// data that we need from user to register
 const createUserSchema = z.object({
-  ...userCore,
-  password: z.string({
-    required_error: 'Password is required',
-    invalid_type_error: 'Password must be a string'
-  })
+  email: z.string(),
+  password: z.string().min(6),
+  name: z.string()
 });
-
+//exporting the type to provide to the request Body
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+// response schema for registering user
 const createUserResponseSchema = z.object({
-  id: z.number(),
-  ...userCore
+  id: z.string(),
+  email: z.string(),
+  name: z.string()
 });
-
+// same for login route
 const loginSchema = z.object({
   email: z
     .string({
@@ -31,17 +22,14 @@ const loginSchema = z.object({
       invalid_type_error: 'Email must be a string'
     })
     .email(),
-  password: z.string()
+  password: z.string().min(6)
 });
-
+export type LoginUserInput = z.infer<typeof loginSchema>;
 const loginResponseSchema = z.object({
   accessToken: z.string()
 });
-
-export type CreateUserInput = z.infer<typeof createUserSchema>;
-
-export type LoginInput = z.infer<typeof loginSchema>;
-
+// to build our JSON schema, we use buildJsonSchemas from fastify-zod
+// it returns all the schemas to register and a ref to refer these schemas
 export const { schemas: userSchemas, $ref } = buildJsonSchemas({
   createUserSchema,
   createUserResponseSchema,
