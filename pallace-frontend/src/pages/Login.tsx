@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { loginUser } from "../utils/api";
+import { loginUser } from "../services/userService";
 import { useNavigate } from "react-router-dom";
 import "./Form.css"; // Shared styles for both forms
 
@@ -8,6 +8,11 @@ const Login: React.FC = () => {
     email: "",
     password: "",
   });
+
+  const [message, setMessage] = useState<{
+    text: string;
+    type: "success" | "error";
+  } | null>(null);
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,11 +24,18 @@ const Login: React.FC = () => {
     e.preventDefault();
     try {
       const response = await loginUser(formData);
-      alert("Login successful");
       console.log(response);
-      navigate("/home");
+      const token = response;
+      localStorage.setItem("token", token);
+      setMessage({ text: "Login successful", type: "success" });
+      console.log(response);
+
+      setTimeout(() => {
+        navigate("/home");
+      }, 2000);
     } catch (error) {
       console.error("Error logging in", error);
+      setMessage({ text: "Error logging in", type: "error" });
     }
   };
 
@@ -35,6 +47,9 @@ const Login: React.FC = () => {
         className="form-logo"
       />
       <h2>Login</h2>
+      {message && (
+        <div className={`message ${message.type}`}>{message.text}</div>
+      )}
       <form onSubmit={handleSubmit}>
         <div>
           <label>Email:</label>

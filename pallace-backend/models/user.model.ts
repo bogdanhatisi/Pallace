@@ -1,5 +1,10 @@
 import { z } from 'zod';
 import { buildJsonSchemas } from 'fastify-zod';
+
+const getUserSchema = z.object({ token: z.string() });
+
+export type GetUserInput = z.infer<typeof getUserSchema>;
+
 // data that we need from user to register
 const createUserSchema = z.object({
   email: z.string(),

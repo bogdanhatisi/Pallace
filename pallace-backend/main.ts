@@ -4,6 +4,7 @@ import { userSchemas } from './models/user.model';
 import fjwt, { FastifyJWT } from '@fastify/jwt';
 import fCookie from '@fastify/cookie';
 import { JWT } from '@fastify/jwt';
+import cors from '@fastify/cors';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -26,6 +27,12 @@ declare module '@fastify/jwt' {
 }
 
 const app = Fastify({ logger: true }); // you can disable logging
+
+app.register(cors, {
+  origin: 'http://localhost:3000', // Adjust this to specify allowed origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Specify allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization'] // Specify allowed headers
+});
 
 // graceful shutdown
 const listeners = ['SIGINT', 'SIGTERM'];

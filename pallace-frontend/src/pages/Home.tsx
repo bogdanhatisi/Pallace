@@ -1,9 +1,19 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Home.css";
 import LineChart from "../components/LineChart";
 import PieChart from "../components/PieChart";
 
 const Home: React.FC = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+    }
+  }, [navigate]);
+
   return (
     <div className="home-container">
       <header className="home-header">

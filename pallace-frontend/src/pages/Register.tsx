@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { registerUser } from "../utils/api";
+import { useNavigate } from "react-router-dom";
+import { registerUser } from "../services/userService";
 import "./Form.css"; // Shared styles for both forms
 
 const Register: React.FC = () => {
@@ -7,7 +8,14 @@ const Register: React.FC = () => {
     email: "",
     name: "",
     password: "",
+    confirmPassword: "",
   });
+
+  const [message, setMessage] = useState<{
+    text: string;
+    type: "success" | "error";
+  } | null>(null);
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -16,12 +24,22 @@ const Register: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      setMessage({ text: "Passwords do not match", type: "error" });
+      return;
+    }
+
     try {
       const response = await registerUser(formData);
-      alert("Registration successful");
+      setMessage({ text: "Registration successful", type: "success" });
       console.log(response);
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
     } catch (error) {
       console.error("Error registering user", error);
+      setMessage({ text: "Error registering user", type: "error" });
     }
   };
 
@@ -33,6 +51,9 @@ const Register: React.FC = () => {
         className="form-logo"
       />
       <h2>Register</h2>
+      {message && (
+        <div className={`message ${message.type}`}>{message.text}</div>
+      )}
       <form onSubmit={handleSubmit}>
         <div>
           <label>Email:</label>
@@ -60,6 +81,16 @@ const Register: React.FC = () => {
             type="password"
             name="password"
             value={formData.password}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div>
+          <label>Confirm Password:</label>
+          <input
+            type="password"
+            name="confirmPassword"
+            value={formData.confirmPassword}
             onChange={handleChange}
             required
           />
