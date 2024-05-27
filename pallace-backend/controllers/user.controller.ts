@@ -4,6 +4,7 @@ import prisma from '../utils/prisma';
 import { CreateUserInput, LoginUserInput } from '../models/user.model';
 
 const SALT_ROUNDS = 10;
+
 export async function createUser(
   req: FastifyRequest<{
     Body: CreateUserInput;

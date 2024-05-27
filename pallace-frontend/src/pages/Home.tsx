@@ -1,18 +1,47 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Home.css";
 import LineChart from "../components/LineChart";
 import PieChart from "../components/PieChart";
+import { logoutUser } from "../services/userService";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const [userName, setUserName] = useState<string>("");
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
+  const fetchUserData = useCallback(async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:8000/api/dashboard/homeUserData",
+        {
+          credentials: "include", // Include cookies in the request
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setUserName(data.name);
+      } else {
+        console.error("Failed to fetch user data");
+        navigate("/login", {
+          state: { message: "Please authenticate to continue" },
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      navigate("/login", {
+        state: { message: "Please authenticate to continue" },
+      });
     }
   }, [navigate]);
+
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
+
+  const handleLogout = () => {
+    logoutUser();
+    navigate("/login");
+  };
 
   return (
     <div className="home-container">
@@ -36,8 +65,11 @@ const Home: React.FC = () => {
           </a>
         </nav>
         <div className="home-header-icons">
-          <img src="/sun-icon.svg" alt="Theme Toggle" className="icon" />
+          <span className="user-name">{userName}</span>
           <img src="/user-icon.svg" alt="User Profile" className="icon" />
+          <button className="logout-button" onClick={handleLogout}>
+            Logout
+          </button>
         </div>
       </header>
       <main className="home-main">

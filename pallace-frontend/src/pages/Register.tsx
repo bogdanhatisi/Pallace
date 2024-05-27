@@ -31,7 +31,10 @@ const Register: React.FC = () => {
 
     try {
       const response = await registerUser(formData);
-      setMessage({ text: "Registration successful", type: "success" });
+      setMessage({
+        text: "Registration successful, redirecting to login",
+        type: "success",
+      });
       console.log(response);
 
       setTimeout(() => {

@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { loginUser } from "../services/userService";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./Form.css"; // Shared styles for both forms
 
 const Login: React.FC = () => {
@@ -14,6 +14,13 @@ const Login: React.FC = () => {
     type: "success" | "error";
   } | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.message) {
+      setMessage({ text: location.state.message, type: "error" });
+    }
+  }, [location.state]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -25,8 +32,6 @@ const Login: React.FC = () => {
     try {
       const response = await loginUser(formData);
       console.log(response);
-      const token = response;
-      localStorage.setItem("token", token);
       setMessage({ text: "Login successful", type: "success" });
       console.log(response);
 

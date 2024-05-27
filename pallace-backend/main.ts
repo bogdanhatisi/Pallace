@@ -5,6 +5,7 @@ import fjwt, { FastifyJWT } from '@fastify/jwt';
 import fCookie from '@fastify/cookie';
 import { JWT } from '@fastify/jwt';
 import cors from '@fastify/cors';
+import { dashboardRoutes } from './routes/dashboard.route';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -31,7 +32,8 @@ const app = Fastify({ logger: true }); // you can disable logging
 app.register(cors, {
   origin: 'http://localhost:3000', // Adjust this to specify allowed origins
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Specify allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization'] // Specify allowed headers
+  allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
+  credentials: true
 });
 
 // graceful shutdown
@@ -49,16 +51,23 @@ async function main() {
   });
   // jwt
   app.register(fjwt, { secret: 'supersecretcode-CHANGE_THIS-USE_ENV_FILE' });
+
   app.decorate(
     'authenticate',
     async (req: FastifyRequest, reply: FastifyReply) => {
       const token = req.cookies.access_token;
+      console.log(token);
       if (!token) {
         return reply.status(401).send({ message: 'Authentication required' });
       }
-      // here decoded will be a different type by default but we want it to be of user-payload type
-      const decoded = req.jwt.verify<FastifyJWT['user']>(token);
-      req.user = decoded;
+      try {
+        const decoded = req.jwt.verify<UserPayload>(token);
+        console.log(decoded);
+        req.user = decoded;
+      } catch (err) {
+        req.log.error(err);
+        return reply.status(401).send({ message: 'Invalid token' });
+      }
     }
   );
   app.addHook('preHandler', (req, res, next) => {
@@ -72,7 +81,13 @@ async function main() {
     hook: 'preHandler'
   });
   // routes
-  app.register(userRoutes, { prefix: 'api/users' });
+  app.register(userRoutes, {
+    prefix: 'api/users'
+  });
+
+  app.register(dashboardRoutes, {
+    prefix: 'api/dashboard'
+  });
   for (const schema of [...userSchemas]) {
     app.addSchema(schema);
   }
