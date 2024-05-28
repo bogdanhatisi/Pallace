@@ -3,10 +3,18 @@ import util from 'util';
 import fs from 'fs';
 import path from 'path';
 import { FastifyReply, FastifyRequest } from 'fastify';
+import { PrismaClient } from '@prisma/client';
 
 const pump = util.promisify(pipeline);
-const tempDir = './temp-uploads';
+const prisma = new PrismaClient();
+
 const uploadDir = './uploads';
+
+async function createDirectoryIfNotExists(directory: string): Promise<void> {
+  if (!fs.existsSync(directory)) {
+    fs.mkdirSync(directory, { recursive: true });
+  }
+}
 
 async function moveFile(source: string, destination: string): Promise<void> {
   await fs.promises.rename(source, destination);
@@ -24,39 +32,40 @@ export async function saveInvoice(
   req: FastifyRequest,
   reply: FastifyReply
 ): Promise<FastifyReply> {
-  // Ensure the temporary directory exists
-  if (!fs.existsSync(tempDir)) {
-    fs.mkdirSync(tempDir, { recursive: true });
+  // Ensure userId is available in the request
+  const userId = req.user?.id;
+
+  if (!userId) {
+    return reply.code(400).send({ error: 'User ID is required' });
   }
+
+  const userUploadDir = path.join(uploadDir, userId);
+
+  // Ensure the user-specific directory exists
+  await createDirectoryIfNotExists(userUploadDir);
 
   try {
     const parts = req.files();
 
-    // Save files to the temporary directory
     for await (const part of parts) {
       if (part.file) {
-        const tempFilePath = path.join(tempDir, part.filename);
-        await pump(part.file, fs.createWriteStream(tempFilePath));
+        const filePath = path.join(userUploadDir, part.filename);
+        await pump(part.file, fs.createWriteStream(filePath));
+
+        // Save invoice details to the database
+        await prisma.invoice.create({
+          data: {
+            filePath,
+            total: 0, // You can replace this with actual total if available in the request
+            userId
+          }
+        });
       }
     }
 
-    // If all files are saved successfully, move them to the final upload directory
-    const files = await fs.promises.readdir(tempDir);
-    await Promise.all(
-      files.map(file =>
-        moveFile(path.join(tempDir, file), path.join(uploadDir, file))
-      )
-    );
-
-    return reply.code(200).send({ message: 'files uploaded' });
+    return reply.code(200).send({ message: 'Files uploaded successfully' });
   } catch (e) {
-    // If there is an error, clean up any files saved in the temporary directory
-    await cleanUpFiles(tempDir);
+    await cleanUpFiles(userUploadDir);
     return reply.code(500).send({ error: (e as Error).message });
-  } finally {
-    // Clean up the temporary directory after processing
-    if (fs.existsSync(tempDir)) {
-      fs.rmdirSync(tempDir, { recursive: true });
-    }
   }
 }
