@@ -1,11 +1,13 @@
 import Fastify, { FastifyReply, FastifyRequest } from 'fastify';
 import { userRoutes } from './routes/user.route';
 import { userSchemas } from './models/user.model';
-import fjwt, { FastifyJWT } from '@fastify/jwt';
-import fCookie from '@fastify/cookie';
-import { JWT } from '@fastify/jwt';
-import cors from '@fastify/cors';
 import { dashboardRoutes } from './routes/dashboard.route';
+import { JWT } from '@fastify/jwt';
+import fjwt from '@fastify/jwt';
+import fCookie from '@fastify/cookie';
+import cors from '@fastify/cors';
+import multipart from '@fastify/multipart';
+import { invoiceRoutes } from './routes/invoice.route';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -35,6 +37,9 @@ app.register(cors, {
   allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
   credentials: true
 });
+
+// register multipart to handle files
+app.register(multipart);
 
 // graceful shutdown
 const listeners = ['SIGINT', 'SIGTERM'];
@@ -91,6 +96,8 @@ async function main() {
   for (const schema of [...userSchemas]) {
     app.addSchema(schema);
   }
+
+  app.register(invoiceRoutes, { prefix: 'api/invoices' });
   await app.listen({
     port: 8000,
     host: '0.0.0.0'

@@ -12,68 +12,6 @@ body {
   padding: 20px;
 }
 
-.home-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 20px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-}
-
-.logo-container {
-  display: flex;
-  align-items: center;
-}
-
-.home-logo {
-  height: 50px;
-}
-
-.logo-text {
-  margin-left: 10px;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
-}
-
-.home-nav {
-  display: flex;
-  gap: 20px;
-}
-
-.home-nav-item {
-  text-decoration: none;
-  color: #555;
-  padding: 10px 20px;
-  border-radius: 5px;
-  transition: background-color 0.3s, color 0.3s;
-}
-
-.home-nav-item:hover,
-.home-nav-item.active {
-  background-color: #007bff;
-  color: #ffffff;
-}
-
-.home-header-icons {
-  display: flex;
-  align-items: center;
-}
-
-.icon {
-  height: 30px;
-  margin-left: 15px;
-  cursor: pointer;
-  transition: transform 0.3s;
-}
-
-.icon:hover {
-  transform: scale(1.1);
-}
-
 .home-main {
   display: flex;
   flex-direction: column;

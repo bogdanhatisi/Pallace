@@ -18,4 +18,15 @@ model User {
   email String @unique
   name String?
   password String
+  invoices  Invoice[]
+}
+
+model Invoice {
+  id        String   @id @default(uuid())
+  filePath  String
+  total     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
 }

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./Home.css";
 import LineChart from "../components/LineChart";
 import PieChart from "../components/PieChart";
-import { logoutUser } from "../services/userService";
+import Header from "../pages/Header";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -38,40 +38,9 @@ const Home: React.FC = () => {
     fetchUserData();
   }, [fetchUserData]);
 
-  const handleLogout = () => {
-    logoutUser();
-    navigate("/login");
-  };
-
   return (
     <div className="home-container">
-      <header className="home-header">
-        <div className="logo-container">
-          <img src="/logo.png" alt="Pallace Logo" className="home-logo" />
-          <span className="logo-text">Pallace</span>
-        </div>
-        <nav className="home-nav">
-          <a href="/" className="home-nav-item active">
-            Overview
-          </a>
-          <a href="/" className="home-nav-item">
-            Transaction
-          </a>
-          <a href="/" className="home-nav-item">
-            Invoice
-          </a>
-          <a href="/" className="home-nav-item">
-            Activity
-          </a>
-        </nav>
-        <div className="home-header-icons">
-          <span className="user-name">{userName}</span>
-          <img src="/user-icon.svg" alt="User Profile" className="icon" />
-          <button className="logout-button" onClick={handleLogout}>
-            Logout
-          </button>
-        </div>
-      </header>
+      <Header userName={userName} />
       <main className="home-main">
         <section className="home-summary">
           <div className="summary-card">
