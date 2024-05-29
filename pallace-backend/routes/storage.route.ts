@@ -2,8 +2,7 @@ import { FastifyInstance } from 'fastify';
 import {
   deleteFile,
   getFileMime,
-  processFileOCR,
-  processFilePDF
+  processFile
 } from '../controllers/storage.controller';
 
 export async function storageRoutes(app: FastifyInstance) {
@@ -16,12 +15,7 @@ export async function storageRoutes(app: FastifyInstance) {
   app.get(
     '/:userId/:filename/process',
     { preHandler: [app.authenticate] },
-    processFilePDF
-  );
-  app.get(
-    '/:userId/:filename/processOCR',
-    { preHandler: [app.authenticate] },
-    processFileOCR
+    processFile
   );
   app.log.info('storage routes registered');
 }

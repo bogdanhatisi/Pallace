@@ -152,22 +152,14 @@ export async function deleteFile(
   }
 }
 
-export async function processFilePDF(
-  req: FastifyRequest,
-  reply: FastifyReply
-): Promise<string | null> {
-  const ownership = await verifyOwnership(req, reply);
-  if (ownership == null) {
-    reply.status(404).send({
-      message: 'Invalid URL'
-    });
-  }
-  const { userId, filename } = req.params as {
-    userId: string;
-    filename: string;
-  };
-  const filePath = path.join(__dirname, '../uploads', userId, filename);
-  const prismaFilePath = `uploads\\${userId}\\${filename}`;
+async function extractTextFromImage(imagePath: string): Promise<string> {
+  const {
+    data: { text }
+  } = await Tesseract.recognize(imagePath, 'eng');
+  return text;
+}
+
+async function processPdf(filePath: string): Promise<string | null> {
   const fileContents = await fs.promises.readFile(filePath);
   const data = await pdf(fileContents);
 
@@ -181,56 +173,44 @@ export async function processFilePDF(
   // Split the text into lines and search for the "TOTAL" label
   const lines = text.split('\n');
   const totals: string[] = [];
+
   for (let i = 0; i < lines.length; i++) {
-    if (lines[i].includes('Total')) {
-      // Assuming the number is in the same line after the "TOTAL" label
-      const match = lines[i].match(/Total\$([0-9,]+\.\d{2})/);
-      if (match && match[1]) {
-        console.log('TOTAL', match[1]);
-        if (match && match[1]) {
-          totals.push(match[1]);
-        }
-      }
+    if (/Total/i.test(lines[i])) {
+      const totalAmount = lines[i].split('$')[1];
+      console.log('TOTAL AMOUNT', totalAmount);
+      totals.push(totalAmount);
     }
   }
   if (totals.length > 0) {
     const lastTotal = totals[totals.length - 1];
     console.log('LAST TOTAL', lastTotal);
-    console.log('TOTAL', parseFloat(lastTotal.replace(/,/g, '')));
-    console.log('USER ID', userId);
-    console.log('PRISMA FILE PATH', prismaFilePath);
-
-    // Update the total in the database
-    const updatedInvoice = await prisma.invoice.updateMany({
-      where: {
-        userId: userId,
-        filePath: prismaFilePath
-      },
-      data: {
-        total: parseFloat(lastTotal.replace(/,/g, ''))
-      }
-    });
-    console.log('TOTAL', updatedInvoice);
-    reply.status(200).send({
-      message: 'File processed successfully'
-    });
     return lastTotal;
   }
-
-  reply.status(404).send({
-    message: 'Processing failed: Total not found in the file'
-  });
   return null;
 }
 
-async function extractTextFromImage(imagePath: string): Promise<string> {
-  const {
-    data: { text }
-  } = await Tesseract.recognize(imagePath, 'eng');
-  return text;
+async function processImage(filePath: string): Promise<string | null> {
+  const text = await extractTextFromImage(filePath);
+  const lines = text.split('\n');
+  console.log('LINES', lines);
+  const totals: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    if (/Total/i.test(lines[i])) {
+      const totalAmount = lines[i].split('$')[1];
+      totals.push(totalAmount);
+    }
+  }
+
+  // Find the last occurrence of the total
+  if (totals.length > 0) {
+    const lastTotal = totals[totals.length - 1];
+    return lastTotal;
+  }
+  return null;
 }
 
-export async function processFileOCR(
+export async function processFile(
   req: FastifyRequest,
   reply: FastifyReply
 ): Promise<void> {
@@ -248,30 +228,19 @@ export async function processFileOCR(
   };
   const filePath = path.join(__dirname, '../uploads', userId, filename);
   const prismaFilePath = `uploads\\${userId}\\${filename}`;
-  const fileContents = await fs.promises.readFile(filePath);
 
-  if (!fileContents) {
-    reply.status(404).send({ message: 'File not found' });
-    return;
-  }
+  const mimeType = mime.lookup(filePath);
+  let total: string | null = null;
 
   try {
-    const text = await extractTextFromImage(filePath);
-    const lines = text.split('\n');
-    console.log('LINES', lines);
-    const totals: string[] = [];
-
-    for (let i = 0; i < lines.length; i++) {
-      if (/Total/i.test(lines[i])) {
-        const totalAmount = lines[i].split('$')[1];
-        totals.push(totalAmount);
-      }
+    if (mimeType === 'application/pdf') {
+      total = await processPdf(filePath);
+    } else if (mimeType && mimeType.startsWith('image/')) {
+      total = await processImage(filePath);
     }
 
-    // Find the last occurrence of the total
-    if (totals.length > 0) {
-      const lastTotal = totals[totals.length - 1];
-      console.log('LAST TOTAL', lastTotal);
+    if (total) {
+      console.log('LAST TOTAL', total);
       // Update the total in the database
       await prisma.invoice.updateMany({
         where: {
@@ -279,19 +248,18 @@ export async function processFileOCR(
           filePath: prismaFilePath
         },
         data: {
-          total: parseFloat(lastTotal)
+          total: parseFloat(total)
         }
       });
 
       reply
         .status(200)
-        .send({ message: 'File processed successfully', total: lastTotal });
-      return;
+        .send({ message: 'File processed successfully', total: total });
+    } else {
+      reply.status(404).send({
+        message: 'Processing failed: Total not found in the file'
+      });
     }
-
-    reply.status(404).send({
-      message: 'Processing failed: Total not found in the file'
-    });
   } catch (error) {
     console.error('Error processing file:', error);
     reply.status(500).send({ message: 'Error processing file' });
