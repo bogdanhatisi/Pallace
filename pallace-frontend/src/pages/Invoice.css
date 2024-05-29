@@ -104,7 +104,7 @@ body {
   background-color: #4caf50;
   color: white;
   border: none;
-  padding: 10px 15px;
+  padding: 15px 20px;
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -177,30 +177,66 @@ body {
   gap: 10px;
 }
 
-.delete-button {
-  background-color: red;
-  color: white;
-  border: none;
-  padding: 10px 15px;
+.delete-button,
+.process-button {
+  padding: 15px 20px;
+  border: 1px solid transparent;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.delete-button {
+  background-color: #ff4d4d;
+  color: white;
+  border-color: #ff4d4d;
 }
 
 .delete-button:hover {
-  background-color: darkred;
+  background-color: #ff1a1a;
 }
 
 .process-button {
   background-color: rgb(74, 74, 200);
   color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+  border-color: rgb(74, 74, 200);
 }
 
 .process-button:hover {
   background-color: darkblue;
+}
+
+/* Tabs Styles */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tab {
+  padding: 15px 25px;
+  border: 1px solid transparent;
+  width: 200px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #333;
+}
+
+.tab.active {
+  background-color: #e0f7ff;
+  border-color: #00bfff;
+  color: #00bfff;
+}
+
+.tab.inactive {
+  background-color: #f4f4f4;
+  border-color: #ccc;
+  color: #ccc;
+  filter: grayscale(100%);
+}
+
+.tab.inactive:hover {
+  filter: none;
+  color: #333;
 }

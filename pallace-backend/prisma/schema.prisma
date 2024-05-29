@@ -25,8 +25,14 @@ model Invoice {
   id        String   @id @default(uuid())
   filePath  String
   total     Float    @default(0.0)
+  type      InvoiceType @default(SENT)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   userId    String
   user      User     @relation(fields: [userId], references: [id])
+}
+
+enum InvoiceType {
+  SENT
+  RECEIVED
 }

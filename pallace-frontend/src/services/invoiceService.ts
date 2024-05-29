@@ -6,16 +6,21 @@ export interface Invoice {
   total: number;
   createdAt: string;
   updatedAt: string;
+  type: "SENT" | "RECEIVED"; // Add the type field to Invoice interface
 }
 
 const BASE_URL_INVOICES = "http://localhost:8000/api/invoices";
 const BASE_URL_STORAGE = "http://localhost:8000/api/storage";
 
-export const uploadInvoice = async (file: File): Promise<Response> => {
+export const uploadInvoice = async (
+  file: File,
+  activeTab: "SENT" | "RECEIVED"
+): Promise<Response> => {
   const formData = new FormData();
   formData.append("file", file, encodeURIComponent(file.name)); // Encode the file name
+  formData.append("type", activeTab); // Include the type in the form data
 
-  const response = await fetch(`${BASE_URL_INVOICES}/upload`, {
+  const response = await fetch(`${BASE_URL_INVOICES}/upload/${activeTab}`, {
     method: "POST",
     body: formData,
     credentials: "include", // Include cookies in the request
@@ -24,15 +29,25 @@ export const uploadInvoice = async (file: File): Promise<Response> => {
   return response;
 };
 
-export const fetchInvoices = async (): Promise<Invoice[]> => {
-  const response = await fetch(`${BASE_URL_INVOICES}/allUserInvoices`, {
-    method: "GET",
-    credentials: "include", // Include cookies in the request
-  });
+export const fetchInvoices = async (
+  activeTab: "SENT" | "RECEIVED"
+): Promise<Invoice[]> => {
+  const response = await fetch(
+    `${BASE_URL_INVOICES}/allUserInvoices/${activeTab}`,
+    {
+      method: "GET",
+      credentials: "include", // Include cookies in the request
+    }
+  );
 
   if (response.ok) {
     const data: Invoice[] = await response.json();
-    return data;
+    // Decode the file paths
+    const decodedData = data.map((invoice) => ({
+      ...invoice,
+      filePath: decodeURIComponent(invoice.filePath),
+    }));
+    return decodedData;
   } else {
     throw new Error("Failed to fetch invoices");
   }
@@ -40,11 +55,12 @@ export const fetchInvoices = async (): Promise<Invoice[]> => {
 
 export const deleteInvoice = async (
   userId: string,
-  fileName: string
+  fileName: string,
+  activeTab: "SENT" | "RECEIVED"
 ): Promise<Response> => {
   const fileNameEncoded = encodeURIComponent(fileName);
   const response = await fetch(
-    `${BASE_URL_STORAGE}/${userId}/${fileNameEncoded}`,
+    `${BASE_URL_STORAGE}/${userId}/${fileNameEncoded}/${activeTab}`,
     {
       method: "DELETE",
       credentials: "include", // Include cookies in the request

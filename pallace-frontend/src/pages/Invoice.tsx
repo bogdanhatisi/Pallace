@@ -17,6 +17,7 @@ const InvoiceComponent: React.FC = () => {
   const [messageType, setMessageType] = useState<string>("error");
   const [userName, setUserName] = useState<string>("");
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [activeTab, setActiveTab] = useState<"SENT" | "RECEIVED">("SENT");
 
   const convertFilePath = (filePath: string): string => {
     return filePath.replace(/^uploads\\/, "").replace(/\\/g, "/");
@@ -37,14 +38,14 @@ const InvoiceComponent: React.FC = () => {
     }
 
     try {
-      const response = await uploadInvoice(file);
-
+      const response = await uploadInvoice(file, activeTab);
       if (response.ok) {
         setMessage("File uploaded successfully.");
         setMessageType("success");
         loadInvoices(); // Fetch the invoices again to update the list
       } else {
-        setMessage("Failed to upload file.");
+        const responseData = await response.json();
+        setMessage(responseData.error || "Failed to upload file.");
         setMessageType("error");
       }
     } catch (error) {
@@ -56,7 +57,7 @@ const InvoiceComponent: React.FC = () => {
 
   const loadInvoices = async () => {
     try {
-      const data = await fetchInvoices();
+      const data = await fetchInvoices(activeTab);
       setInvoices(data);
     } catch (error) {
       console.error("Error fetching invoices:", error);
@@ -68,7 +69,7 @@ const InvoiceComponent: React.FC = () => {
     const fileName = invoice.filePath.split("\\")[2];
 
     try {
-      const response = await deleteInvoice(userId, fileName);
+      const response = await deleteInvoice(userId, fileName, activeTab);
 
       if (response.ok) {
         setMessage("File deleted successfully.");
@@ -111,7 +112,7 @@ const InvoiceComponent: React.FC = () => {
 
   useEffect(() => {
     loadInvoices();
-  }, []);
+  }, [activeTab]);
 
   return (
     <div className="invoice-container">
@@ -127,6 +128,23 @@ const InvoiceComponent: React.FC = () => {
           <button type="submit">Upload</button>
         </form>
         {message && <div className={`message ${messageType}`}>{message}</div>}
+
+        <div className="tabs">
+          <button
+            className={`tab ${activeTab === "SENT" ? "active" : "inactive"}`}
+            onClick={() => setActiveTab("SENT")}
+          >
+            Sent Invoices
+          </button>
+          <button
+            className={`tab ${
+              activeTab === "RECEIVED" ? "active" : "inactive"
+            }`}
+            onClick={() => setActiveTab("RECEIVED")}
+          >
+            Received Invoices
+          </button>
+        </div>
 
         <h2>Your Invoices</h2>
         <table className="invoice-table">

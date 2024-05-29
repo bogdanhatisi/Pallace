@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { PrismaClient } from '@prisma/client';
+import { InvoiceType, PrismaClient } from '@prisma/client';
 import Tesseract from 'tesseract.js';
 import fs from 'fs';
 import path from 'path';
@@ -18,6 +18,7 @@ export async function verifyOwnership(
   if (url) {
     const urlSegments = url.split('/');
     const userIdFromUrl = urlSegments ? urlSegments[3] : null; // Extract userId from URL
+    console.log('URL SEGMENTS', urlSegments);
     if (!userIdFromUrl) {
       reply.status(404).send({
         message: 'Invalid URL'
@@ -47,7 +48,7 @@ export async function verifyOwnership(
       });
       return null;
     }
-    filePath = `uploads\\${userId}\\` + filePath;
+    filePath = `uploads\\${userId}\\` + decodeURIComponent(filePath);
     // Check if the file belongs to the user
     const invoice = await prisma.invoice.findFirst({
       where: {
@@ -117,12 +118,21 @@ export async function deleteFile(
   console.log('DELETE FILE');
   const ownership = await verifyOwnership(req, reply);
   if (ownership != null) {
-    const { userId, filename } = req.params as {
+    const { userId, filename, type } = req.params as {
       userId: string;
       filename: string;
+      type: InvoiceType;
     };
-    const filePath = path.join(__dirname, '../uploads', userId, filename);
-    const prismaFilePath = `uploads\\${userId}\\${filename}`;
+    console.log('FILENAME', filename);
+    const decodedFilename = decodeURIComponent(filename);
+    console.log('DECODED FILENAME', decodedFilename);
+    const filePath = path.join(
+      __dirname,
+      '../uploads',
+      userId,
+      decodedFilename
+    );
+    const prismaFilePath = `uploads\\${userId}\\${decodedFilename}`;
     console.log('FILE PATH', filePath);
 
     try {
@@ -132,7 +142,8 @@ export async function deleteFile(
         await prisma.invoice.deleteMany({
           where: {
             userId: userId,
-            filePath: prismaFilePath
+            filePath: prismaFilePath,
+            type
           }
         })
       );

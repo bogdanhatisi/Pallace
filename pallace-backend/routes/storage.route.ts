@@ -8,7 +8,7 @@ import {
 export async function storageRoutes(app: FastifyInstance) {
   app.get('/:userId/*', { preHandler: [app.authenticate] }, getFileMime);
   app.delete(
-    '/:userId/:filename',
+    '/:userId/:filename/:type',
     { preHandler: [app.authenticate] },
     deleteFile
   );

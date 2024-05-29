@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { PrismaClient } from '@prisma/client';
+import { InvoiceType, UploadInvoiceBodyType } from '../models/invoice.model';
 
 const pump = util.promisify(pipeline);
 const prisma = new PrismaClient();
@@ -29,14 +30,21 @@ async function cleanUpFiles(directory: string): Promise<void> {
 }
 
 export async function saveInvoice(
-  req: FastifyRequest,
+  req: FastifyRequest<{ Body: UploadInvoiceBodyType }>,
   reply: FastifyReply
 ): Promise<FastifyReply> {
   // Ensure userId is available in the request
+
+  console.log(req);
   const userId = req.user?.id;
+  const { type } = req.params as { type: InvoiceType };
 
   if (!userId) {
     return reply.code(400).send({ error: 'User ID is required' });
+  }
+
+  if (!type) {
+    return reply.code(400).send({ error: 'Invoice type is required' });
   }
 
   const userUploadDir = path.join(uploadDir, userId);
@@ -49,7 +57,18 @@ export async function saveInvoice(
 
     for await (const part of parts) {
       if (part.file) {
-        const filePath = path.join(userUploadDir, part.filename);
+        const filePath = path.join(
+          userUploadDir,
+          decodeURIComponent(part.filename)
+        );
+
+        // Check if a file with the same name already exists
+        if (fs.existsSync(filePath)) {
+          return reply
+            .code(400)
+            .send({ error: 'File with the same name already exists' });
+        }
+
         await pump(part.file, fs.createWriteStream(filePath));
 
         // Save invoice details to the database
@@ -57,7 +76,8 @@ export async function saveInvoice(
           data: {
             filePath,
             total: 0, // You can replace this with actual total if available in the request
-            userId
+            userId,
+            type
           }
         });
       }
@@ -75,15 +95,21 @@ export async function getUserInvoices(
   reply: FastifyReply
 ): Promise<FastifyReply> {
   const userId = req.user?.id;
+  const { type } = req.params as { type: InvoiceType };
 
   if (!userId) {
     return reply.code(400).send({ error: 'User ID is required' });
   }
 
+  if (!type) {
+    return reply.code(400).send({ error: 'Invoice type is required' });
+  }
+
   try {
     const invoices = await prisma.invoice.findMany({
       where: {
-        userId: userId
+        userId: userId,
+        type: type
       },
       orderBy: {
         createdAt: 'desc'

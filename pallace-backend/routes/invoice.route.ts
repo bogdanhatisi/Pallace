@@ -12,9 +12,9 @@ export async function invoiceRoutes(app: FastifyInstance) {
         'Hello, this is the invoice route. Perhaps you are looking for numbers, fellow capitalist?!'
       );
   });
-  app.post('/upload', { preHandler: [app.authenticate] }, saveInvoice);
+  app.post('/upload/:type', { preHandler: [app.authenticate] }, saveInvoice);
   app.get(
-    '/allUserInvoices',
+    '/allUserInvoices/:type',
     { preHandler: [app.authenticate] },
     getUserInvoices
   );
