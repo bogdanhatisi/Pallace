@@ -2,16 +2,15 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Invoice.css";
 import Header from "../pages/Header";
+import {
+  Invoice,
+  uploadInvoice,
+  fetchInvoices,
+  deleteInvoice,
+  processInvoice,
+} from "../services/invoiceService";
 
-interface Invoice {
-  id: string;
-  filePath: string;
-  total: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-const Invoice: React.FC = () => {
+const InvoiceComponent: React.FC = () => {
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState<string>("");
@@ -37,23 +36,13 @@ const Invoice: React.FC = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file, encodeURIComponent(file.name)); // Encode the file name
-
     try {
-      const response = await fetch(
-        "http://localhost:8000/api/invoices/upload",
-        {
-          method: "POST",
-          body: formData,
-          credentials: "include", // Include cookies in the request
-        }
-      );
+      const response = await uploadInvoice(file);
 
       if (response.ok) {
         setMessage("File uploaded successfully.");
         setMessageType("success");
-        fetchInvoices(); // Fetch the invoices again to update the list
+        loadInvoices(); // Fetch the invoices again to update the list
       } else {
         setMessage("Failed to upload file.");
         setMessageType("error");
@@ -65,48 +54,26 @@ const Invoice: React.FC = () => {
     }
   };
 
-  const fetchInvoices = async () => {
+  const loadInvoices = async () => {
     try {
-      const response = await fetch(
-        "http://localhost:8000/api/invoices/allUserInvoices",
-        {
-          method: "GET",
-          credentials: "include", // Include cookies in the request
-        }
-      );
-
-      if (response.ok) {
-        const data: Invoice[] = await response.json();
-        setInvoices(data);
-      } else {
-        console.error("Failed to fetch invoices");
-      }
+      const data = await fetchInvoices();
+      setInvoices(data);
     } catch (error) {
       console.error("Error fetching invoices:", error);
     }
   };
 
   const handleDelete = async (invoice: Invoice) => {
-    console.log(invoice);
     const userId = invoice.filePath.split("\\")[1];
-    const fileName = invoice.filePath.split("\\")[2]; // Extract userId from filePath
-    console.log(invoice.filePath);
-    console.log(userId);
-    const fileNameEncoded = encodeURIComponent(fileName); // Extract and encode fileName
+    const fileName = invoice.filePath.split("\\")[2];
 
     try {
-      const response = await fetch(
-        `http://localhost:8000/api/storage/${userId}/${fileNameEncoded}`,
-        {
-          method: "DELETE",
-          credentials: "include", // Include cookies in the request
-        }
-      );
+      const response = await deleteInvoice(userId, fileName);
 
       if (response.ok) {
         setMessage("File deleted successfully.");
         setMessageType("success");
-        fetchInvoices(); // Fetch the invoices again to update the list
+        loadInvoices(); // Fetch the invoices again to update the list
       } else {
         setMessage("Failed to delete file.");
         setMessageType("error");
@@ -119,26 +86,18 @@ const Invoice: React.FC = () => {
   };
 
   const handleProcess = async (invoice: Invoice) => {
-    console.log(invoice);
     const userId = invoice.filePath.split("\\")[1];
-    const fileName = invoice.filePath.split("\\")[2]; // Extract userId from filePath
-    const fileNameEncoded = encodeURIComponent(fileName); // Extract and encode fileName
+    const fileName = invoice.filePath.split("\\")[2];
 
     try {
-      const response = await fetch(
-        `http://localhost:8000/api/storage/${userId}/${fileNameEncoded}/process`,
-        {
-          method: "GET",
-          credentials: "include", // Include cookies in the request
-        }
-      );
+      const response = await processInvoice(userId, fileName);
 
       if (response.ok) {
         const data = await response.json();
         console.log(data);
         setMessage("File processed successfully.");
         setMessageType("success");
-        fetchInvoices();
+        loadInvoices(); // Fetch the invoices again to update the list
       } else {
         setMessage("Failed to process file.");
         setMessageType("error");
@@ -151,7 +110,7 @@ const Invoice: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchInvoices();
+    loadInvoices();
   }, []);
 
   return (
@@ -224,4 +183,4 @@ const Invoice: React.FC = () => {
   );
 };
 
-export default Invoice;
+export default InvoiceComponent;
