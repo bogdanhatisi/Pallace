@@ -5,10 +5,12 @@ import path from 'path';
 
 const prisma = new PrismaClient();
 
+//TODO Refactor this file
+
 export async function verifyOwnership(
   req: FastifyRequest,
   reply: FastifyReply
-): Promise<void> {
+): Promise<string | null> {
   const url = req.raw.url;
   if (url) {
     const urlSegments = url.split('/');
@@ -17,36 +19,32 @@ export async function verifyOwnership(
       reply.status(404).send({
         message: 'Invalid URL'
       });
-      return;
+      return null;
     }
-    console.log('USER', req.user);
     if (!req.user) {
       reply.status(401).send({
         message: 'Unauthorized, please log in first'
       });
-      return;
+      return null;
     }
     const userId = req.user.id;
-    console.log(userIdFromUrl, userId);
     if (userIdFromUrl.toString() !== userId.toString()) {
       reply.status(403).send({
         message:
           'Access forbidden: You do not have permission to access this file'
       });
-      return;
+      return null;
     }
 
     let filePath = urlSegments ? urlSegments[4] : null;
 
-    console.log('FILEPATH', filePath);
     if (!filePath) {
       reply.status(404).send({
         message: 'Invalid URL'
       });
-      return;
+      return null;
     }
     filePath = `uploads\\${userId}\\` + filePath;
-    console.log('FILEPATH COMPLETE', filePath);
     // Check if the file belongs to the user
     const invoice = await prisma.invoice.findFirst({
       where: {
@@ -55,15 +53,26 @@ export async function verifyOwnership(
       }
     });
 
-    console.log(invoice);
-
     if (!invoice) {
       reply.status(403).send({
         message:
           'Access forbidden: You do not have permission to access this file'
       });
-      return;
+      return null;
     }
+
+    return filePath;
+  }
+  return null;
+}
+
+export async function getFile(
+  req: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> {
+  const filePath = await verifyOwnership(req, reply);
+
+  if (filePath != null) {
     const fileContents = await fs.promises.readFile(filePath);
     reply.type('application/pdf').send(fileContents);
   } else {
@@ -74,30 +83,44 @@ export async function verifyOwnership(
   }
 }
 
-export async function verifyOwnershipAndDeleteFile(
+export async function deleteFile(
   req: FastifyRequest,
   reply: FastifyReply
 ): Promise<void> {
-  const { userId, filename } = req.params as {
-    userId: string;
-    filename: string;
-  };
-  const filePath = path.join(__dirname, '../uploads', userId, filename);
+  console.log('DELETE FILE');
+  const ownership = await verifyOwnership(req, reply);
+  if (ownership != null) {
+    const { userId, filename } = req.params as {
+      userId: string;
+      filename: string;
+    };
+    const filePath = path.join(__dirname, '../uploads', userId, filename);
+    const prismaFilePath = `uploads\\${userId}\\${filename}`;
+    console.log('FILE PATH', filePath);
 
-  try {
-    await fs.promises.unlink(filePath);
+    try {
+      // Remove the file record from the database
+      console.log(
+        'PRISMA LOG',
+        await prisma.invoice.deleteMany({
+          where: {
+            userId: userId,
+            filePath: prismaFilePath
+          }
+        })
+      );
 
-    // Remove the file record from the database
-    await prisma.invoice.deleteMany({
-      where: {
-        userId: userId,
-        filePath: filePath
-      }
+      await fs.promises.unlink(filePath);
+
+      reply.send({ message: 'File deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      reply.status(500).send({ message: 'Error deleting file' });
+    }
+  } else {
+    reply.status(404).send({
+      message: 'Invalid URL'
     });
-
-    reply.send({ message: 'File deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting file:', error);
-    reply.status(500).send({ message: 'Error deleting file' });
+    return;
   }
 }

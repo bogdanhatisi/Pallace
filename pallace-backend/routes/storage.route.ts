@@ -1,16 +1,12 @@
 import { FastifyInstance } from 'fastify';
-import { verifyOwnership } from '../controllers/storage.controller';
+import { deleteFile, getFile } from '../controllers/storage.controller';
 
 export async function storageRoutes(app: FastifyInstance) {
-  app.get(
-    '/api/storage/:userId/*',
+  app.get('/:userId/*', { preHandler: [app.authenticate] }, getFile);
+  app.delete(
+    '/:userId/:filename',
     { preHandler: [app.authenticate] },
-    verifyOwnership
-  );
-  app.get(
-    '/api/storage/:userId/*',
-    { preHandler: [app.authenticate, verifyOwnership] },
-    verifyOwnership
+    deleteFile
   );
   app.log.info('storage routes registered');
 }

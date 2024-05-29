@@ -38,7 +38,7 @@ const Invoice: React.FC = () => {
     }
 
     const formData = new FormData();
-    formData.append("file", file, encodeURIComponent(file.name));
+    formData.append("file", file, encodeURIComponent(file.name)); // Encode the file name
 
     try {
       const response = await fetch(
@@ -86,6 +86,38 @@ const Invoice: React.FC = () => {
     }
   };
 
+  const handleDelete = async (invoice: Invoice) => {
+    console.log(invoice);
+    const userId = invoice.filePath.split("\\")[1];
+    const fileName = invoice.filePath.split("\\")[2]; // Extract userId from filePath
+    console.log(invoice.filePath);
+    console.log(userId);
+    const fileNameEncoded = encodeURIComponent(fileName); // Extract and encode fileName
+
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/storage/${userId}/${fileNameEncoded}`,
+        {
+          method: "DELETE",
+          credentials: "include", // Include cookies in the request
+        }
+      );
+
+      if (response.ok) {
+        setMessage("File deleted successfully.");
+        setMessageType("success");
+        fetchInvoices(); // Fetch the invoices again to update the list
+      } else {
+        setMessage("Failed to delete file.");
+        setMessageType("error");
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      setMessage("Error deleting file.");
+      setMessageType("error");
+    }
+  };
+
   useEffect(() => {
     fetchInvoices();
   }, []);
@@ -109,17 +141,18 @@ const Invoice: React.FC = () => {
         <table className="invoice-table">
           <thead>
             <tr>
-              <th>ID</th>
+              <th>NAME</th>
               <th>File Path</th>
               <th>Total</th>
               <th>Created At</th>
               <th>Updated At</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {invoices.map((invoice) => (
               <tr key={invoice.id}>
-                <td>{invoice.id}</td>
+                <td>{invoice.filePath.split("\\")[2]}</td>
                 <td>
                   <a
                     href={`http://localhost:8000/api/storage/${convertFilePath(
@@ -134,6 +167,9 @@ const Invoice: React.FC = () => {
                 <td>{invoice.total}</td>
                 <td>{new Date(invoice.createdAt).toLocaleString()}</td>
                 <td>{new Date(invoice.updatedAt).toLocaleString()}</td>
+                <td>
+                  <button onClick={() => handleDelete(invoice)}>Delete</button>
+                </td>
               </tr>
             ))}
           </tbody>

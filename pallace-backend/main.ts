@@ -100,7 +100,7 @@ async function main() {
   });
 
   app.register(invoiceRoutes, { prefix: 'api/invoices' });
-  app.register(storageRoutes);
+  app.register(storageRoutes, { prefix: 'api/storage' });
   await app.listen({
     port: 8000,
     host: '0.0.0.0'
