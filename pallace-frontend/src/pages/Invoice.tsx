@@ -118,6 +118,38 @@ const Invoice: React.FC = () => {
     }
   };
 
+  const handleProcess = async (invoice: Invoice) => {
+    console.log(invoice);
+    const userId = invoice.filePath.split("\\")[1];
+    const fileName = invoice.filePath.split("\\")[2]; // Extract userId from filePath
+    const fileNameEncoded = encodeURIComponent(fileName); // Extract and encode fileName
+
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/storage/${userId}/${fileNameEncoded}/process`,
+        {
+          method: "GET",
+          credentials: "include", // Include cookies in the request
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data);
+        setMessage("File processed successfully.");
+        setMessageType("success");
+        fetchInvoices();
+      } else {
+        setMessage("Failed to process file.");
+        setMessageType("error");
+      }
+    } catch (error) {
+      console.error("Error processing file:", error);
+      setMessage("Error processing file.");
+      setMessageType("error");
+    }
+  };
+
   useEffect(() => {
     fetchInvoices();
   }, []);
@@ -168,7 +200,20 @@ const Invoice: React.FC = () => {
                 <td>{new Date(invoice.createdAt).toLocaleString()}</td>
                 <td>{new Date(invoice.updatedAt).toLocaleString()}</td>
                 <td>
-                  <button onClick={() => handleDelete(invoice)}>Delete</button>
+                  <div className="action-buttons">
+                    <button
+                      className="delete-button"
+                      onClick={() => handleDelete(invoice)}
+                    >
+                      Delete
+                    </button>
+                    <button
+                      className="process-button"
+                      onClick={() => handleProcess(invoice)}
+                    >
+                      Process
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
