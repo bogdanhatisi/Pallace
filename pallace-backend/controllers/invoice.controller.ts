@@ -16,9 +16,9 @@ async function createDirectoryIfNotExists(directory: string): Promise<void> {
   }
 }
 
-async function moveFile(source: string, destination: string): Promise<void> {
-  await fs.promises.rename(source, destination);
-}
+// async function moveFile(source: string, destination: string): Promise<void> {
+//   await fs.promises.rename(source, destination);
+// }
 
 async function cleanUpFiles(directory: string): Promise<void> {
   const files = await fs.promises.readdir(directory);
@@ -66,6 +66,32 @@ export async function saveInvoice(
     return reply.code(200).send({ message: 'Files uploaded successfully' });
   } catch (e) {
     await cleanUpFiles(userUploadDir);
+    return reply.code(500).send({ error: (e as Error).message });
+  }
+}
+
+export async function getUserInvoices(
+  req: FastifyRequest,
+  reply: FastifyReply
+): Promise<FastifyReply> {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    return reply.code(400).send({ error: 'User ID is required' });
+  }
+
+  try {
+    const invoices = await prisma.invoice.findMany({
+      where: {
+        userId: userId
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    return reply.code(200).send(invoices);
+  } catch (e) {
     return reply.code(500).send({ error: (e as Error).message });
   }
 }

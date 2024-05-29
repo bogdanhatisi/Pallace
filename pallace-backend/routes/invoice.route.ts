@@ -1,5 +1,8 @@
 import { FastifyInstance } from 'fastify';
-import { saveInvoice } from '../controllers/invoice.controller';
+import {
+  getUserInvoices,
+  saveInvoice
+} from '../controllers/invoice.controller';
 
 export async function invoiceRoutes(app: FastifyInstance) {
   app.get('/', { preHandler: [app.authenticate] }, async (request, reply) => {
@@ -10,5 +13,10 @@ export async function invoiceRoutes(app: FastifyInstance) {
       );
   });
   app.post('/upload', { preHandler: [app.authenticate] }, saveInvoice);
-  app.log.info('dashboard routes registered');
+  app.get(
+    '/allUserInvoices',
+    { preHandler: [app.authenticate] },
+    getUserInvoices
+  );
+  app.log.info('invoice routes registered');
 }

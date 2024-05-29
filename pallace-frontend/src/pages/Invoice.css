@@ -125,3 +125,48 @@ body {
 .message.success {
   background-color: #a1f5a4; /* Green for success */
 }
+
+/* Table Styles */
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.invoice-table th,
+.invoice-table td {
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.invoice-table th {
+  background-color: #f4f4f4;
+  color: #333;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.invoice-table tr {
+  background-color: #fff;
+  transition: background-color 0.3s ease;
+}
+
+.invoice-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.invoice-table tr:hover {
+  background-color: #f1f1f1;
+}
+
+.invoice-table a {
+  color: #3498db;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.invoice-table a:hover {
+  color: #2980b9;
+}

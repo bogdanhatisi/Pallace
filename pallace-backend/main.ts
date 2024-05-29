@@ -3,11 +3,12 @@ import { userRoutes } from './routes/user.route';
 import { userSchemas } from './models/user.model';
 import { dashboardRoutes } from './routes/dashboard.route';
 import { JWT } from '@fastify/jwt';
+import { invoiceRoutes } from './routes/invoice.route';
 import fjwt from '@fastify/jwt';
 import fCookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
-import { invoiceRoutes } from './routes/invoice.route';
+import { storageRoutes } from './routes/storage.route';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -90,14 +91,16 @@ async function main() {
     prefix: 'api/users'
   });
 
-  app.register(dashboardRoutes, {
-    prefix: 'api/dashboard'
-  });
   for (const schema of [...userSchemas]) {
     app.addSchema(schema);
   }
 
+  app.register(dashboardRoutes, {
+    prefix: 'api/dashboard'
+  });
+
   app.register(invoiceRoutes, { prefix: 'api/invoices' });
+  app.register(storageRoutes);
   await app.listen({
     port: 8000,
     host: '0.0.0.0'
