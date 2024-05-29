@@ -1,8 +1,10 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { PrismaClient } from '@prisma/client';
+import Tesseract from 'tesseract.js';
 import fs from 'fs';
 import path from 'path';
 import pdf from 'pdf-parse';
+import mime from 'mime-types'; // Use mime-types to determine MIME type based on file extension
 
 const prisma = new PrismaClient();
 
@@ -84,6 +86,30 @@ export async function getFile(
   }
 }
 
+export async function getFileMime(
+  req: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> {
+  const filePath = await verifyOwnership(req, reply);
+
+  if (filePath != null) {
+    try {
+      const fileContents = await fs.promises.readFile(filePath);
+      const mimeType = mime.lookup(filePath) || 'application/octet-stream'; // Determine the MIME type based on file extension
+      reply.type(mimeType).send(fileContents);
+    } catch (error) {
+      console.error('Error reading file:', error);
+      reply.status(500).send({
+        message: 'Error reading file'
+      });
+    }
+  } else {
+    reply.status(404).send({
+      message: 'Invalid URL'
+    });
+  }
+}
+
 export async function deleteFile(
   req: FastifyRequest,
   reply: FastifyReply
@@ -126,7 +152,7 @@ export async function deleteFile(
   }
 }
 
-export async function processFile(
+export async function processFilePDF(
   req: FastifyRequest,
   reply: FastifyReply
 ): Promise<string | null> {
@@ -195,4 +221,79 @@ export async function processFile(
     message: 'Processing failed: Total not found in the file'
   });
   return null;
+}
+
+async function extractTextFromImage(imagePath: string): Promise<string> {
+  const {
+    data: { text }
+  } = await Tesseract.recognize(imagePath, 'eng');
+  return text;
+}
+
+export async function processFileOCR(
+  req: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> {
+  const ownership = await verifyOwnership(req, reply);
+  if (!ownership) {
+    reply.status(404).send({
+      message: 'Invalid URL'
+    });
+    return;
+  }
+
+  const { userId, filename } = req.params as {
+    userId: string;
+    filename: string;
+  };
+  const filePath = path.join(__dirname, '../uploads', userId, filename);
+  const prismaFilePath = `uploads\\${userId}\\${filename}`;
+  const fileContents = await fs.promises.readFile(filePath);
+
+  if (!fileContents) {
+    reply.status(404).send({ message: 'File not found' });
+    return;
+  }
+
+  try {
+    const text = await extractTextFromImage(filePath);
+    const lines = text.split('\n');
+    console.log('LINES', lines);
+    const totals: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      if (/Total/i.test(lines[i])) {
+        const totalAmount = lines[i].split('$')[1];
+        totals.push(totalAmount);
+      }
+    }
+
+    // Find the last occurrence of the total
+    if (totals.length > 0) {
+      const lastTotal = totals[totals.length - 1];
+      console.log('LAST TOTAL', lastTotal);
+      // Update the total in the database
+      await prisma.invoice.updateMany({
+        where: {
+          userId,
+          filePath: prismaFilePath
+        },
+        data: {
+          total: parseFloat(lastTotal)
+        }
+      });
+
+      reply
+        .status(200)
+        .send({ message: 'File processed successfully', total: lastTotal });
+      return;
+    }
+
+    reply.status(404).send({
+      message: 'Processing failed: Total not found in the file'
+    });
+  } catch (error) {
+    console.error('Error processing file:', error);
+    reply.status(500).send({ message: 'Error processing file' });
+  }
 }

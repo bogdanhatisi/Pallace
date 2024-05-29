@@ -126,7 +126,7 @@ const Invoice: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/api/storage/${userId}/${fileNameEncoded}/process`,
+        `http://localhost:8000/api/storage/${userId}/${fileNameEncoded}/processOCR`,
         {
           method: "GET",
           credentials: "include", // Include cookies in the request
