@@ -1,77 +1,83 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import regression, { DataPoint } from "regression";
 import "./Home.css";
 import LineChart from "../components/LineChart";
 import PieChart from "../components/PieChart";
 import Header from "../pages/Header";
+import { fetchInvoices, Invoice } from "../services/invoiceService";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const [userName, setUserName] = useState<string>("");
+  const [cashFlow, setCashFlow] = useState<number>(0);
+  const [expenses, setExpenses] = useState<number>(0);
+  const [netProfit, setNetProfit] = useState<number>(0);
+  const [netProfitPercentage, setNetProfitPercentage] = useState<number>(0);
+  const [burnRate, setBurnRate] = useState<number>(0);
 
-  const fetchUserData = useCallback(async () => {
+  const loadInvoices = useCallback(async () => {
     try {
-      const response = await fetch(
-        "http://localhost:8000/api/dashboard/homeUserData",
-        {
-          credentials: "include", // Include cookies in the request
-        }
+      const sentData = await fetchInvoices("SENT");
+      const receivedData = await fetchInvoices("RECEIVED");
+
+      const sentTotals = sentData.map((invoice: Invoice) => invoice.total);
+      const receivedTotals = receivedData.map(
+        (invoice: Invoice) => invoice.total
       );
-      if (response.ok) {
-        const data = await response.json();
-        setUserName(data.name);
-      } else {
-        console.error("Failed to fetch user data");
-        navigate("/login", {
-          state: { message: "Please authenticate to continue" },
-        });
-      }
+
+      const totalCashFlow = sentTotals.reduce((acc, curr) => acc + curr, 0);
+      const totalExpenses = receivedTotals.reduce((acc, curr) => acc + curr, 0);
+      const totalNetProfit = totalCashFlow - totalExpenses;
+      const netProfitPercentage =
+        totalCashFlow !== 0 ? (totalNetProfit / totalCashFlow) * 100 : 0;
+      const numberOfMonths = sentTotals.length; // Use the actual length of sent totals
+      const calculatedBurnRate = totalExpenses / numberOfMonths;
+
+      setCashFlow(totalCashFlow);
+      setExpenses(totalExpenses);
+      setNetProfit(totalNetProfit);
+      setNetProfitPercentage(netProfitPercentage);
+      setBurnRate(calculatedBurnRate);
     } catch (error) {
-      console.error("Error fetching user data:", error);
-      navigate("/login", {
-        state: { message: "Please authenticate to continue" },
-      });
+      console.error("Error fetching invoices:", error);
     }
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
-    fetchUserData();
-  }, [fetchUserData]);
+    loadInvoices();
+  }, [loadInvoices]);
 
   return (
     <div className="home-container">
-      <Header userName={userName} />
+      <Header />
       <main className="home-main">
         <section className="home-summary">
           <div className="summary-card">
             <h3>Cash Flow</h3>
-            <p>$128,320</p>
+            <p>${cashFlow.toLocaleString()}</p>
           </div>
           <div className="summary-card">
             <h3>Net Profit</h3>
-            <p>25.43%</p>
-            <span className="positive-change">↑ 11.09%</span>
+            <p>{netProfitPercentage.toFixed(2)}%</p>
+            <span
+              className={
+                netProfitPercentage >= 0 ? "positive-change" : "negative-change"
+              }
+            >
+              {netProfitPercentage >= 0 ? "↑" : "↓"}{" "}
+              {Math.abs(netProfitPercentage).toFixed(2)}%
+            </span>
           </div>
           <div className="summary-card">
             <h3>Burn Rate</h3>
-            <p>$35,320</p>
-            <span className="negative-change">↓ 10.00%</span>
+            <p>${burnRate.toLocaleString()}</p>
           </div>
           <div className="summary-card">
             <h3>Expenses</h3>
-            <p>$128,320</p>
+            <p>${expenses.toLocaleString()}</p>
           </div>
         </section>
-        <section className="home-reports">
-          <h3>Reports</h3>
-          <div className="reports-toggle">
-            <button className="active">Cash Flow</button>
-            <button>Expenses</button>
-          </div>
-          <div className="reports-chart">
-            <LineChart />
-          </div>
-        </section>
+        <LineChart />
         <section className="home-expenses">
           <div className="expenses-card">
             <h3>All Expenses</h3>

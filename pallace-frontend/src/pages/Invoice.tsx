@@ -9,13 +9,13 @@ import {
   deleteInvoice,
   processInvoice,
 } from "../services/invoiceService";
+import LineChart from "../components/LineChart"; // Import the LineChart component
 
 const InvoiceComponent: React.FC = () => {
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState<string>("");
   const [messageType, setMessageType] = useState<string>("error");
-  const [userName, setUserName] = useState<string>("");
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [activeTab, setActiveTab] = useState<"SENT" | "RECEIVED">("SENT");
 
@@ -116,7 +116,7 @@ const InvoiceComponent: React.FC = () => {
 
   return (
     <div className="invoice-container">
-      <Header userName={userName} />
+      <Header />
       <main className="invoice-main">
         <h2>Upload Financial Statement</h2>
         <form className="upload-form" onSubmit={handleSubmit}>

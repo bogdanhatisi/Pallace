@@ -1,14 +1,35 @@
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import "./Header.css";
 import { logoutUser } from "../services/userService";
 
-interface HeaderProps {
-  userName: string;
-}
-
-const Header: React.FC<HeaderProps> = ({ userName }) => {
+const Header: React.FC = () => {
   const navigate = useNavigate();
+  const [userName, setUserName] = useState<string>("");
+  const fetchUserData = useCallback(async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:8000/api/dashboard/homeUserData",
+        {
+          credentials: "include", // Include cookies in the request
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setUserName(data.name);
+      } else {
+        console.error("Failed to fetch user data");
+        navigate("/login", {
+          state: { message: "Please authenticate to continue" },
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      navigate("/login", {
+        state: { message: "Please authenticate to continue" },
+      });
+    }
+  }, [navigate]);
 
   const handleLogout = () => {
     logoutUser();
@@ -18,6 +39,10 @@ const Header: React.FC<HeaderProps> = ({ userName }) => {
   const handleLogoClick = () => {
     navigate("/home");
   };
+
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
 
   return (
     <header className="header">
