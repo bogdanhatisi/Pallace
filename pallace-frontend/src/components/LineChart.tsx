@@ -119,7 +119,7 @@ const LineChart: React.FC = () => {
         },
         {
           label: "Predicted Cash Flow",
-          data: showPredictedCashFlow ? predictedData : [],
+          data: showPredictedCashFlow && showCashFlow ? predictedData : [],
           fill: true,
           backgroundColor: "rgba(0, 255, 0, 0.2)",
           borderColor: "rgba(0, 255, 0, 1)",
