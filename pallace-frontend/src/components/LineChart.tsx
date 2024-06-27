@@ -13,6 +13,7 @@ import {
 } from "chart.js";
 import { Invoice, fetchInvoices } from "../services/invoiceService";
 import { useNavigate } from "react-router-dom";
+import "./LineChart.css";
 
 ChartJS.register(
   CategoryScale,
@@ -29,41 +30,105 @@ const LineChart: React.FC = () => {
   const [sentTotals, setSentTotals] = useState<number[]>([]);
   const [receivedTotals, setReceivedTotals] = useState<number[]>([]);
   const [predictedCashFlow, setPredictedCashFlow] = useState<number[]>([]);
-  const [showCashFlow, setShowCashFlow] = useState<boolean>(false);
-  const [showExpenses, setShowExpenses] = useState<boolean>(false);
+  const [predictedExpenses, setPredictedExpenses] = useState<number[]>([]);
+  const [labels, setLabels] = useState<string[]>([]);
+  const [showCashFlow, setShowCashFlow] = useState<boolean>(true);
+  const [showExpenses, setShowExpenses] = useState<boolean>(true);
   const [showPredictedCashFlow, setShowPredictedCashFlow] =
-    useState<boolean>(false);
+    useState<boolean>(true);
+  const [showPredictedExpenses, setShowPredictedExpenses] =
+    useState<boolean>(true);
 
-  const labels = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
+  const groupByMonthYear = (invoices: Invoice[]): { [key: string]: number } => {
+    const monthlyTotals: { [key: string]: number } = {};
+
+    invoices.forEach((invoice) => {
+      const date = new Date(invoice.createdAt);
+      const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
+
+      if (!monthlyTotals[monthYear]) {
+        monthlyTotals[monthYear] = 0;
+      }
+
+      monthlyTotals[monthYear] += invoice.total;
+    });
+
+    return monthlyTotals;
+  };
+
+  const generateFilledLabelsAndTotals = (
+    startDate: Date,
+    endDate: Date,
+    monthlyData: { [key: string]: number }
+  ): { labels: string[]; totals: number[] } => {
+    const labels = [];
+    const totals = [];
+    const currentDate = new Date(startDate);
+
+    while (currentDate <= endDate) {
+      const monthYear = `${currentDate.getFullYear()}-${
+        currentDate.getMonth() + 1
+      }`;
+      labels.push(`${currentDate.getMonth() + 1}-${currentDate.getFullYear()}`);
+      totals.push(monthlyData[monthYear] || 0);
+      currentDate.setMonth(currentDate.getMonth() + 1);
+    }
+
+    return { labels, totals };
+  };
 
   const loadData = useCallback(async () => {
     try {
       const sentData = await fetchInvoices("SENT");
       const receivedData = await fetchInvoices("RECEIVED");
 
-      const sentTotals = sentData.map((invoice: Invoice) => invoice.total);
-      const receivedTotals = receivedData.map(
-        (invoice: Invoice) => invoice.total
+      if (sentData.length === 0 && receivedData.length === 0) {
+        setLabels([]);
+        setSentTotals([]);
+        setReceivedTotals([]);
+        setPredictedCashFlow([]);
+        setPredictedExpenses([]);
+        return;
+      }
+
+      const startDate = new Date(
+        Math.min(
+          ...sentData
+            .concat(receivedData)
+            .map((invoice) => new Date(invoice.createdAt).getTime())
+        )
+      );
+      const lastInvoiceDate = new Date(
+        Math.max(
+          ...sentData
+            .concat(receivedData)
+            .map((invoice) => new Date(invoice.createdAt).getTime())
+        )
+      );
+      const endDate = new Date(lastInvoiceDate);
+      endDate.setMonth(endDate.getMonth() + 1);
+
+      const sentMonthlyData = groupByMonthYear(sentData);
+      const receivedMonthlyData = groupByMonthYear(receivedData);
+
+      const { labels: filledLabels, totals: filledSentTotals } =
+        generateFilledLabelsAndTotals(startDate, endDate, sentMonthlyData);
+      const { totals: filledReceivedTotals } = generateFilledLabelsAndTotals(
+        startDate,
+        endDate,
+        receivedMonthlyData
       );
 
-      setSentTotals(sentTotals);
-      setReceivedTotals(receivedTotals);
+      setLabels(filledLabels);
+      setSentTotals(filledSentTotals);
+      setReceivedTotals(filledReceivedTotals);
 
-      if (sentTotals.length > 0) {
-        populatePredictedCashFlow(sentTotals);
+      if (filledSentTotals.length > 0 || filledReceivedTotals.length > 0) {
+        populatePredictedData(
+          filledSentTotals,
+          filledReceivedTotals,
+          filledLabels
+        );
       }
     } catch (error) {
       console.error("Error fetching invoices:", error);
@@ -74,43 +139,80 @@ const LineChart: React.FC = () => {
     loadData();
   }, [loadData]);
 
-  const populatePredictedCashFlow = (sentTotals: number[]) => {
-    const numberOfMonths = sentTotals.length;
+  const populatePredictedData = (
+    sentTotals: number[],
+    receivedTotals: number[],
+    combinedLabels: string[]
+  ) => {
+    const futureMonths = 6; // Predict for the next 6 months
+    const totalMonths = combinedLabels.length;
 
-    // Prepare data for linear regression
+    // Linear regression for cash flow
     const cashFlowData: DataPoint[] = sentTotals.map((total, index) => [
       index + 1,
       total,
     ]);
-    const result = regression.linear(cashFlowData);
-    const predictions: number[] = [];
-    const futureMonths = 6; // Predict for the next 6 months
+    const cashFlowResult = regression.linear(cashFlowData);
+    const cashFlowPredictions: number[] = [];
     for (let i = 1; i <= futureMonths; i++) {
-      const futureMonth = numberOfMonths + i;
-      const prediction = result.predict(futureMonth)[1];
-      predictions.push(prediction);
+      const futureMonth = totalMonths + i;
+      const prediction = cashFlowResult.predict(futureMonth)[1];
+      cashFlowPredictions.push(prediction);
     }
+    setPredictedCashFlow(cashFlowPredictions);
 
-    setPredictedCashFlow(predictions);
+    // Linear regression for expenses
+    const expensesData: DataPoint[] = receivedTotals.map((total, index) => [
+      index + 1,
+      total,
+    ]);
+    const expensesResult = regression.linear(expensesData);
+    const expensesPredictions: number[] = [];
+    for (let i = 1; i <= futureMonths; i++) {
+      const futureMonth = totalMonths + i;
+      const prediction = expensesResult.predict(futureMonth)[1];
+      expensesPredictions.push(prediction);
+    }
+    setPredictedExpenses(expensesPredictions);
+
+    // Add prediction labels to the combined labels
+    const lastLabel = combinedLabels[combinedLabels.length - 1];
+    const [month, year] = lastLabel
+      .split("-")
+      .map((part) => parseInt(part, 10));
+    const lastDate = new Date(year, month - 1);
+    const predictionLabels = generateLabels(lastDate, futureMonths + 1).slice(
+      1
+    ); // Skip the first month, which is the last actual month
+    setLabels([...combinedLabels, ...predictionLabels]);
+  };
+
+  const generateLabels = (startDate: Date, length: number): string[] => {
+    const labels = [];
+    for (let i = 0; i < length; i++) {
+      const date = new Date(startDate);
+      date.setMonth(date.getMonth() + i);
+      labels.push(`${date.getMonth() + 1}-${date.getFullYear()}`);
+    }
+    return labels;
   };
 
   const getChartData = () => {
-    const totalLength = sentTotals.length + predictedCashFlow.length;
+    const totalLength = labels.length;
 
-    // Ensure proper concatenation of actual and predicted data
-    const predictedData =
-      sentTotals.length > 0
-        ? Array(sentTotals.length - 1)
-            .fill(null)
-            .concat(sentTotals[sentTotals.length - 1])
-            .concat(predictedCashFlow)
+    const predictedCashFlowData =
+      sentTotals.length > 0 ? [...sentTotals, ...predictedCashFlow] : [];
+
+    const predictedExpensesData =
+      receivedTotals.length > 0
+        ? [...receivedTotals, ...predictedExpenses]
         : [];
 
     return {
       labels: labels.slice(0, totalLength), // Slice the labels to match the length of the data
       datasets: [
         {
-          label: "Actual Cash Flow",
+          label: "Actual Income",
           data: showCashFlow ? sentTotals : [],
           fill: true,
           backgroundColor: "rgba(0, 123, 255, 0.2)",
@@ -118,8 +220,9 @@ const LineChart: React.FC = () => {
           hidden: !showCashFlow,
         },
         {
-          label: "Predicted Cash Flow",
-          data: showPredictedCashFlow && showCashFlow ? predictedData : [],
+          label: "Predicted Income",
+          data:
+            showPredictedCashFlow && showCashFlow ? predictedCashFlowData : [],
           fill: true,
           backgroundColor: "rgba(0, 255, 0, 0.2)",
           borderColor: "rgba(0, 255, 0, 1)",
@@ -127,16 +230,22 @@ const LineChart: React.FC = () => {
           hidden: !showPredictedCashFlow,
         },
         {
-          label: "Expenses",
-          data: showExpenses
-            ? receivedTotals.concat(
-                new Array(predictedCashFlow.length).fill(null)
-              )
-            : [], // Extend expenses data with null for predicted period
+          label: "Actual Expenses",
+          data: showExpenses ? receivedTotals : [],
           fill: true,
           backgroundColor: "rgba(255, 159, 64, 0.2)",
           borderColor: "rgba(255, 159, 64, 1)",
           hidden: !showExpenses,
+        },
+        {
+          label: "Predicted Expenses",
+          data:
+            showPredictedExpenses && showExpenses ? predictedExpensesData : [],
+          fill: true,
+          backgroundColor: "rgba(255, 99, 132, 0.2)",
+          borderColor: "rgba(255, 99, 132, 1)",
+          borderDash: [5, 5], // Add a dashed line for predicted values
+          hidden: !showPredictedExpenses,
         },
       ],
     };
@@ -151,7 +260,13 @@ const LineChart: React.FC = () => {
       },
       title: {
         display: true,
-        text: "Cash Flow and Expenses",
+        text: "Income and Expenses",
+      },
+    },
+    scales: {
+      x: {
+        type: "category" as const,
+        labels: labels,
       },
     },
   };
@@ -164,7 +279,7 @@ const LineChart: React.FC = () => {
           className={showCashFlow ? "active" : ""}
           onClick={() => setShowCashFlow(!showCashFlow)}
         >
-          Cash Flow
+          Income
         </button>
         <button
           className={showExpenses ? "active" : ""}
@@ -176,7 +291,13 @@ const LineChart: React.FC = () => {
           className={showPredictedCashFlow ? "active" : ""}
           onClick={() => setShowPredictedCashFlow(!showPredictedCashFlow)}
         >
-          Predict
+          Predict Income
+        </button>
+        <button
+          className={showPredictedExpenses ? "active" : ""}
+          onClick={() => setShowPredictedExpenses(!showPredictedExpenses)}
+        >
+          Predict Expenses
         </button>
       </div>
       <div className="reports-chart">

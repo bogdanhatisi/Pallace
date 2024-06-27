@@ -13,6 +13,7 @@ body {
 }
 
 .home-main {
+  margin-top: 400px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -115,6 +116,7 @@ body {
 .transactions-card {
   background-color: #ffffff;
   padding: 20px;
+  text-align: center;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   flex: 1;

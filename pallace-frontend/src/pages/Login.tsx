@@ -37,7 +37,7 @@ const Login: React.FC = () => {
 
       setTimeout(() => {
         navigate("/home");
-      }, 2000);
+      }, 500);
     } catch (error) {
       console.error("Error logging in", error);
       setMessage({ text: "Error logging in", type: "error" });

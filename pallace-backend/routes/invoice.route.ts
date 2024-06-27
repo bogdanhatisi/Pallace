@@ -1,7 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import {
   getUserInvoices,
-  saveInvoice
+  saveInvoice,
+  updateInvoice
 } from '../controllers/invoice.controller';
 
 export async function invoiceRoutes(app: FastifyInstance) {
@@ -19,4 +20,5 @@ export async function invoiceRoutes(app: FastifyInstance) {
     getUserInvoices
   );
   app.log.info('invoice routes registered');
+  app.put('/updateInvoice', { preHandler: [app.authenticate] }, updateInvoice);
 }

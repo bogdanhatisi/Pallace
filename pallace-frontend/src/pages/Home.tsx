@@ -14,6 +14,7 @@ const Home: React.FC = () => {
   const [netProfit, setNetProfit] = useState<number>(0);
   const [netProfitPercentage, setNetProfitPercentage] = useState<number>(0);
   const [burnRate, setBurnRate] = useState<number>(0);
+  const [recentTransactions, setRecentTransactions] = useState<Invoice[]>([]);
 
   const loadInvoices = useCallback(async () => {
     try {
@@ -38,6 +39,14 @@ const Home: React.FC = () => {
       setNetProfit(totalNetProfit);
       setNetProfitPercentage(netProfitPercentage);
       setBurnRate(calculatedBurnRate);
+      const allInvoices = [...sentData, ...receivedData];
+      allInvoices.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      // Set the last three invoices
+      setRecentTransactions(allInvoices.slice(0, 3));
     } catch (error) {
       console.error("Error fetching invoices:", error);
     }
@@ -53,7 +62,7 @@ const Home: React.FC = () => {
       <main className="home-main">
         <section className="home-summary">
           <div className="summary-card">
-            <h3>Cash Flow</h3>
+            <h3>Income</h3>
             <p>${cashFlow.toLocaleString()}</p>
           </div>
           <div className="summary-card">
@@ -81,36 +90,35 @@ const Home: React.FC = () => {
         <section className="home-expenses">
           <div className="expenses-card">
             <h3>All Expenses</h3>
-            <div className="expenses-info">
-              <div>Daily: $475</div>
-              <div>Weekly: $3,327</div>
-              <div>Monthly: $12,131</div>
-            </div>
             <div className="expenses-chart">
               <PieChart />
             </div>
           </div>
           <div className="transactions-card">
-            <h3>History Transactions</h3>
-            <a href="/" className="view-all">
+            <h3>Lastest transactions</h3>
+            <a href="/transaction" className="view-all">
               View all
             </a>
             <ul className="transactions-list">
-              <li className="transaction-item positive">
-                <span>Sale</span>
-                <span>Apr 27, 22</span>
-                <span>+ $874</span>
-              </li>
-              <li className="transaction-item negative">
-                <span>Payment</span>
-                <span>Apr 25, 22</span>
-                <span>- $2,490</span>
-              </li>
-              <li className="transaction-item positive">
-                <span>Sale</span>
-                <span>Mar 1, 22</span>
-                <span>+ $126</span>
-              </li>
+              {recentTransactions.map((transaction) => (
+                <li
+                  key={transaction.id}
+                  className={`transaction-item ${
+                    transaction.type === "RECEIVED" ? "positive" : "negative"
+                  }`}
+                >
+                  <span>
+                    {transaction.type === "RECEIVED" ? "Received" : "Sent"}
+                  </span>
+                  <span>
+                    {new Date(transaction.createdAt).toLocaleDateString()}
+                  </span>
+                  <span>
+                    {transaction.type === "RECEIVED" ? "+ " : "- "}$
+                    {transaction.total.toLocaleString()}
+                  </span>
+                </li>
+              ))}
             </ul>
           </div>
         </section>

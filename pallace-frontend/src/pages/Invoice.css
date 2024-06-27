@@ -136,7 +136,7 @@ body {
 
 .invoice-table th,
 .invoice-table td {
-  padding: 12px 15px;
+  padding: 22px 25px;
   border: 1px solid #ddd;
   text-align: left;
 }
@@ -206,6 +206,23 @@ body {
   background-color: darkblue;
 }
 
+.update-button {
+  padding: 15px 20px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.update-button {
+  background-color: green;
+  color: white;
+  border-color: green;
+}
+
+.update-button:hover {
+  background-color: darkgreen;
+}
 /* Tabs Styles */
 .tabs {
   display: flex;

@@ -39,7 +39,7 @@ const Register: React.FC = () => {
 
       setTimeout(() => {
         navigate("/login");
-      }, 2000);
+      }, 500);
     } catch (error) {
       console.error("Error registering user", error);
       setMessage({ text: "Error registering user", type: "error" });

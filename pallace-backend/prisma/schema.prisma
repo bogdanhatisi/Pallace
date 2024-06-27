@@ -15,6 +15,7 @@ datasource db {
 
 model User {
   id String @id @default(cuid())
+  profilePicturePath String @default("none")
   email String @unique
   name String?
   password String
@@ -24,6 +25,7 @@ model User {
 model Invoice {
   id        String   @id @default(uuid())
   filePath  String
+  category  String  @default("misc")
   total     Float    @default(0.0)
   type      InvoiceType @default(SENT)
   createdAt DateTime @default(now())

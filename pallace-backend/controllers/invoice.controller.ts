@@ -4,7 +4,11 @@ import fs from 'fs';
 import path from 'path';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { PrismaClient } from '@prisma/client';
-import { InvoiceType, UploadInvoiceBodyType } from '../models/invoice.model';
+import {
+  InvoiceType,
+  UpdateInvoiceBodyType,
+  UploadInvoiceBodyType
+} from '../models/invoice.model';
 
 const pump = util.promisify(pipeline);
 const prisma = new PrismaClient();
@@ -27,6 +31,47 @@ async function cleanUpFiles(directory: string): Promise<void> {
     fs.promises.unlink(path.join(directory, file))
   );
   await Promise.all(unlinkPromises);
+}
+
+export async function updateInvoice(
+  req: FastifyRequest<{ Body: UpdateInvoiceBodyType }>,
+  reply: FastifyReply
+): Promise<FastifyReply> {
+  const userId = req.user?.id;
+  const { id, total, category, createdAt, type } = req.body;
+
+  console.log(createdAt);
+
+  if (!userId) {
+    return reply.code(400).send({ error: 'User ID is required' });
+  }
+
+  try {
+    // Validate request body
+    const existingInvoice = await prisma.invoice.findUnique({
+      where: { id }
+    });
+
+    if (!existingInvoice || existingInvoice.userId !== userId) {
+      return reply
+        .code(404)
+        .send({ error: 'Invoice not found or access denied' });
+    }
+
+    const updatedInvoice = await prisma.invoice.update({
+      where: { id },
+      data: {
+        total,
+        createdAt,
+        category,
+        type
+      }
+    });
+
+    return reply.code(200).send(updatedInvoice);
+  } catch (e) {
+    return reply.code(500).send({ error: (e as Error).message });
+  }
 }
 
 export async function saveInvoice(

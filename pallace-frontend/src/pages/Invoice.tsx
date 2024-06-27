@@ -8,6 +8,7 @@ import {
   fetchInvoices,
   deleteInvoice,
   processInvoice,
+  updateInvoice,
 } from "../services/invoiceService";
 import LineChart from "../components/LineChart"; // Import the LineChart component
 
@@ -21,6 +22,66 @@ const InvoiceComponent: React.FC = () => {
 
   const convertFilePath = (filePath: string): string => {
     return filePath.replace(/^uploads\\/, "").replace(/\\/g, "/");
+  };
+
+  const handleTotalChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    invoice: Invoice
+  ) => {
+    const newTotal = parseInt(e.target.value, 10);
+    const updatedInvoice = { ...invoice, total: newTotal };
+    const updatedInvoices = invoices.map((inv) =>
+      inv.id === updatedInvoice.id ? updatedInvoice : inv
+    );
+    setInvoices(updatedInvoices);
+  };
+
+  const handleCategoryChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    invoice: Invoice
+  ) => {
+    const newCategory = e.target.value;
+    const updatedInvoice = { ...invoice, category: newCategory };
+    const updatedInvoices = invoices.map((inv) =>
+      inv.id === updatedInvoice.id ? updatedInvoice : inv
+    );
+    setInvoices(updatedInvoices);
+  };
+
+  const handleDateChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    invoice: Invoice
+  ) => {
+    const selectedDate = new Date(e.target.value);
+    const newDate = new Date(
+      Date.UTC(
+        selectedDate.getUTCFullYear(),
+        selectedDate.getUTCMonth(),
+        selectedDate.getUTCDate(),
+        0,
+        0,
+        0
+      )
+    ).toISOString();
+    const updatedInvoice = { ...invoice, createdAt: newDate };
+    console.log(updatedInvoice);
+    const updatedInvoices = invoices.map((inv) =>
+      inv.id === updatedInvoice.id ? updatedInvoice : inv
+    );
+    setInvoices(updatedInvoices);
+  };
+  const getDatePart = (isoString: string) => {
+    return isoString.split("T")[0];
+  };
+
+  const handleUpdateInvoice = async (invoice: Invoice) => {
+    updateInvoice(
+      invoice.id,
+      invoice.total,
+      invoice.category,
+      invoice.createdAt
+    );
+    console.log(invoice);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -153,6 +214,7 @@ const InvoiceComponent: React.FC = () => {
               <th>NAME</th>
               <th>File Path</th>
               <th>Total</th>
+              <th>Category</th>
               <th>Created At</th>
               <th>Updated At</th>
               <th>Actions</th>
@@ -173,8 +235,27 @@ const InvoiceComponent: React.FC = () => {
                     View File
                   </a>
                 </td>
-                <td>{invoice.total}</td>
-                <td>{new Date(invoice.createdAt).toLocaleString()}</td>
+                <td>
+                  <input
+                    type="float"
+                    value={invoice.total}
+                    onChange={(e) => handleTotalChange(e, invoice)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    value={invoice.category}
+                    onChange={(e) => handleCategoryChange(e, invoice)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="Date"
+                    value={getDatePart(invoice.createdAt)}
+                    onChange={(e) => handleDateChange(e, invoice)}
+                  />
+                </td>
                 <td>{new Date(invoice.updatedAt).toLocaleString()}</td>
                 <td>
                   <div className="action-buttons">
@@ -189,6 +270,12 @@ const InvoiceComponent: React.FC = () => {
                       onClick={() => handleProcess(invoice)}
                     >
                       Process
+                    </button>
+                    <button
+                      className="update-button"
+                      onClick={() => handleUpdateInvoice(invoice)}
+                    >
+                      Update
                     </button>
                   </div>
                 </td>

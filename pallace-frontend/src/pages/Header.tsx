@@ -60,9 +60,6 @@ const Header: React.FC = () => {
         <NavLink to="/invoice" className="header-nav-item">
           Invoice
         </NavLink>
-        <NavLink to="/activity" className="header-nav-item">
-          Activity
-        </NavLink>
       </nav>
       <div className="header-icons">
         <span className="user-name">{userName}</span>

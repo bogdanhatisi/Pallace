@@ -4,6 +4,8 @@ export interface Invoice {
   id: string;
   filePath: string;
   total: number;
+  category?: string;
+  date?: string;
   createdAt: string;
   updatedAt: string;
   type: "SENT" | "RECEIVED"; // Add the type field to Invoice interface
@@ -84,4 +86,28 @@ export const processInvoice = async (
   );
 
   return response;
+};
+
+export const updateInvoice = async (
+  id: string,
+  total: number,
+  category?: string,
+  createdAt?: string,
+  type?: "SENT" | "RECEIVED"
+): Promise<Invoice> => {
+  const response = await fetch(`${BASE_URL_INVOICES}/updateInvoice`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include", // Include cookies in the request
+    body: JSON.stringify({ id, total, category, createdAt, type }),
+  });
+
+  if (response.ok) {
+    const updatedInvoice: Invoice = await response.json();
+    return updatedInvoice;
+  } else {
+    throw new Error("Failed to update invoice");
+  }
 };
