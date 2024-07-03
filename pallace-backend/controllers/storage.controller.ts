@@ -184,6 +184,7 @@ async function processPdf(filePath: string): Promise<string | null> {
   // Split the text into lines and search for the "TOTAL" label
   const lines = text.split('\n');
   const totals: string[] = [];
+  const dollarFigures: string[] = [];
 
   for (let i = 0; i < lines.length; i++) {
     if (/Total/i.test(lines[i])) {
@@ -191,11 +192,22 @@ async function processPdf(filePath: string): Promise<string | null> {
       console.log('TOTAL AMOUNT', totalAmount);
       totals.push(totalAmount);
     }
+    if (/$/i.test(lines[i])) {
+      const dollarFigure = lines[i].split('$')[1];
+      dollarFigures.push(dollarFigure);
+    }
   }
-  if (totals.length > 0) {
+  if (totals.length > 0 && totals[totals.length - 1] != undefined) {
     const lastTotal = totals[totals.length - 1];
     console.log('LAST TOTAL', lastTotal);
     return lastTotal;
+  } else if (
+    dollarFigures.length > 0 &&
+    dollarFigures[dollarFigures.length - 1] != undefined
+  ) {
+    const lastDollarFigure = dollarFigures[dollarFigures.length - 1];
+    console.log('LAST DOLLAR FIGURE', lastDollarFigure);
+    return lastDollarFigure;
   }
   return null;
 }
