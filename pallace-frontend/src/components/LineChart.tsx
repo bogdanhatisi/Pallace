@@ -218,6 +218,8 @@ const LineChart: React.FC = () => {
           backgroundColor: "rgba(0, 123, 255, 0.2)",
           borderColor: "rgba(0, 123, 255, 1)",
           hidden: !showCashFlow,
+          pointRadius: 10,
+          pointHitRadius: 20,
         },
         {
           label: "Predicted Income",
@@ -228,6 +230,7 @@ const LineChart: React.FC = () => {
           borderColor: "rgba(0, 255, 0, 1)",
           borderDash: [5, 5], // Add a dashed line for predicted values
           hidden: !showPredictedCashFlow,
+          pointRadius: 5,
         },
         {
           label: "Actual Expenses",
@@ -236,6 +239,8 @@ const LineChart: React.FC = () => {
           backgroundColor: "rgba(255, 159, 64, 0.2)",
           borderColor: "rgba(255, 159, 64, 1)",
           hidden: !showExpenses,
+          pointRadius: 10,
+          pointHitRadius: 20,
         },
         {
           label: "Predicted Expenses",
@@ -246,6 +251,7 @@ const LineChart: React.FC = () => {
           borderColor: "rgba(255, 99, 132, 1)",
           borderDash: [5, 5], // Add a dashed line for predicted values
           hidden: !showPredictedExpenses,
+          pointRadius: 5,
         },
       ],
     };

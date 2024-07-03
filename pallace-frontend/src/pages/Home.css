@@ -9,6 +9,7 @@ body {
   width: 100%;
   max-width: 1400px; /* Increase the max width for a wider layout */
   margin: 0 auto;
+  margin-top: 100px;
   padding: 20px;
 }
 
@@ -101,11 +102,11 @@ body {
   position: relative; /* Ensure the canvas fills the parent container */
 }
 
-.reports-chart canvas {
+/* .reports-chart canvas {
   width: 100% !important;
   height: 100% !important;
-  position: absolute; /* Ensure the canvas fills the parent container */
-}
+  position: absolute;
+} */
 
 .home-expenses {
   display: flex;
@@ -137,7 +138,7 @@ body {
 
 .expenses-chart,
 .reports-chart {
-  max-height: 300px;
+  max-height: 500px;
 }
 
 .transactions-card .view-all {

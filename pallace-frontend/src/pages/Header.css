@@ -1,5 +1,5 @@
 .header {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
@@ -10,6 +10,7 @@
   width: 100%;
   max-width: 1400px; /* Consistent max width */
   margin: 0 auto;
+  margin-bottom: 400px;
   background-color: #fff; /* Matching the home background */
   z-index: 1000; /* Ensure the header is on top */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: Add a shadow for better separation */

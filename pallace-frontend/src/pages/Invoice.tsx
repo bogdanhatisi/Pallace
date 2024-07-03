@@ -176,114 +176,116 @@ const InvoiceComponent: React.FC = () => {
   }, [activeTab]);
 
   return (
-    <div className="invoice-container">
+    <div className="main-invoice-page">
       <Header />
-      <main className="invoice-main">
-        <h2>Upload Financial Statement</h2>
-        <form className="upload-form" onSubmit={handleSubmit}>
-          <input
-            type="file"
-            accept="application/pdf"
-            onChange={handleFileChange}
-          />
-          <button type="submit">Upload</button>
-        </form>
-        {message && <div className={`message ${messageType}`}>{message}</div>}
+      <div className="invoice-container">
+        <main className="invoice-main">
+          <h2>Upload Financial Statement</h2>
+          <form className="upload-form" onSubmit={handleSubmit}>
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={handleFileChange}
+            />
+            <button type="submit">Upload</button>
+          </form>
+          {message && <div className={`message ${messageType}`}>{message}</div>}
 
-        <div className="tabs">
-          <button
-            className={`tab ${activeTab === "SENT" ? "active" : "inactive"}`}
-            onClick={() => setActiveTab("SENT")}
-          >
-            Sent Invoices
-          </button>
-          <button
-            className={`tab ${
-              activeTab === "RECEIVED" ? "active" : "inactive"
-            }`}
-            onClick={() => setActiveTab("RECEIVED")}
-          >
-            Received Invoices
-          </button>
-        </div>
+          <div className="tabs">
+            <button
+              className={`tab ${activeTab === "SENT" ? "active" : "inactive"}`}
+              onClick={() => setActiveTab("SENT")}
+            >
+              Sent Invoices
+            </button>
+            <button
+              className={`tab ${
+                activeTab === "RECEIVED" ? "active" : "inactive"
+              }`}
+              onClick={() => setActiveTab("RECEIVED")}
+            >
+              Received Invoices
+            </button>
+          </div>
 
-        <h2>Your Invoices</h2>
-        <table className="invoice-table">
-          <thead>
-            <tr>
-              <th>NAME</th>
-              <th>File Path</th>
-              <th>Total</th>
-              <th>Category</th>
-              <th>Created At</th>
-              <th>Updated At</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoices.map((invoice) => (
-              <tr key={invoice.id}>
-                <td>{invoice.filePath.split("\\")[2]}</td>
-                <td>
-                  <a
-                    href={`http://localhost:8000/api/storage/${convertFilePath(
-                      invoice.filePath
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    View File
-                  </a>
-                </td>
-                <td>
-                  <input
-                    type="float"
-                    value={invoice.total}
-                    onChange={(e) => handleTotalChange(e, invoice)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    value={invoice.category}
-                    onChange={(e) => handleCategoryChange(e, invoice)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="Date"
-                    value={getDatePart(invoice.createdAt)}
-                    onChange={(e) => handleDateChange(e, invoice)}
-                  />
-                </td>
-                <td>{new Date(invoice.updatedAt).toLocaleString()}</td>
-                <td>
-                  <div className="action-buttons">
-                    <button
-                      className="delete-button"
-                      onClick={() => handleDelete(invoice)}
-                    >
-                      Delete
-                    </button>
-                    <button
-                      className="process-button"
-                      onClick={() => handleProcess(invoice)}
-                    >
-                      Process
-                    </button>
-                    <button
-                      className="update-button"
-                      onClick={() => handleUpdateInvoice(invoice)}
-                    >
-                      Update
-                    </button>
-                  </div>
-                </td>
+          <h2>Your Invoices</h2>
+          <table className="invoice-table">
+            <thead>
+              <tr>
+                <th>NAME</th>
+                <th>File Path</th>
+                <th>Total</th>
+                <th>Category</th>
+                <th>Created At</th>
+                <th>Updated At</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </main>
+            </thead>
+            <tbody>
+              {invoices.map((invoice) => (
+                <tr key={invoice.id}>
+                  <td>{invoice.filePath.split("\\")[2]}</td>
+                  <td>
+                    <a
+                      href={`http://localhost:8000/api/storage/${convertFilePath(
+                        invoice.filePath
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      View File
+                    </a>
+                  </td>
+                  <td>
+                    <input
+                      type="float"
+                      value={invoice.total}
+                      onChange={(e) => handleTotalChange(e, invoice)}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      value={invoice.category}
+                      onChange={(e) => handleCategoryChange(e, invoice)}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="Date"
+                      value={getDatePart(invoice.createdAt)}
+                      onChange={(e) => handleDateChange(e, invoice)}
+                    />
+                  </td>
+                  <td>{new Date(invoice.updatedAt).toLocaleString()}</td>
+                  <td>
+                    <div className="action-buttons">
+                      <button
+                        className="delete-button"
+                        onClick={() => handleDelete(invoice)}
+                      >
+                        Delete
+                      </button>
+                      <button
+                        className="process-button"
+                        onClick={() => handleProcess(invoice)}
+                      >
+                        Process
+                      </button>
+                      <button
+                        className="update-button"
+                        onClick={() => handleUpdateInvoice(invoice)}
+                      >
+                        Update
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </main>
+      </div>
     </div>
   );
 };
