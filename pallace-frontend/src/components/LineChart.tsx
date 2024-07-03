@@ -106,7 +106,7 @@ const LineChart: React.FC = () => {
         )
       );
       const endDate = new Date(lastInvoiceDate);
-      endDate.setMonth(endDate.getMonth() + 1);
+      endDate.setMonth(endDate.getMonth());
 
       const sentMonthlyData = groupByMonthYear(sentData);
       const receivedMonthlyData = groupByMonthYear(receivedData);
