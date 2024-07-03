@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { loginUser } from "../services/userService";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import "./Form.css"; // Shared styles for both forms
 
 const Login: React.FC = () => {
@@ -78,6 +78,9 @@ const Login: React.FC = () => {
         </div>
         <button type="submit">Login</button>
       </form>
+      <p className="register-prompt">
+        Don't have an account? <Link to="/register">Register here</Link>
+      </p>
     </div>
   );
 };

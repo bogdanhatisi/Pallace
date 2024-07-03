@@ -4,7 +4,8 @@ import {
   createUser,
   getUsers,
   login,
-  logout
+  logout,
+  updateUser
 } from '../controllers/user.controller';
 
 export async function userRoutes(app: FastifyInstance) {
@@ -38,6 +39,19 @@ export async function userRoutes(app: FastifyInstance) {
       }
     },
     login
+  );
+  app.put(
+    '/update',
+    {
+      schema: {
+        body: $ref('updateUserSchema'),
+        response: {
+          200: $ref('updateUserResponseSchema')
+        }
+      },
+      preHandler: [app.authenticate]
+    },
+    updateUser
   );
   app.delete('/logout', { preHandler: [app.authenticate] }, logout);
   app.log.info('user routes registered');

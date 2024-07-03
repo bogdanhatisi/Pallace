@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import regression, { DataPoint } from "regression";
 import "./Home.css";
 import LineChart from "../components/LineChart";
@@ -96,15 +96,15 @@ const Home: React.FC = () => {
           </div>
           <div className="transactions-card">
             <h3>Lastest transactions</h3>
-            <a href="/transaction" className="view-all">
-              View all
-            </a>
+            <NavLink to="/transaction" className="header-nav-item">
+              See all...
+            </NavLink>
             <ul className="transactions-list">
               {recentTransactions.map((transaction) => (
                 <li
                   key={transaction.id}
                   className={`transaction-item ${
-                    transaction.type === "RECEIVED" ? "positive" : "negative"
+                    transaction.type === "SENT" ? "positive" : "negative"
                   }`}
                 >
                   <span>
@@ -114,7 +114,7 @@ const Home: React.FC = () => {
                     {new Date(transaction.createdAt).toLocaleDateString()}
                   </span>
                   <span>
-                    {transaction.type === "RECEIVED" ? "+ " : "- "}$
+                    {transaction.type === "SENT" ? "+ " : "- "}$
                     {transaction.total.toLocaleString()}
                   </span>
                 </li>

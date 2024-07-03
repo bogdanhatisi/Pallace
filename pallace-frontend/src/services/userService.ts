@@ -27,3 +27,13 @@ export const logoutUser = async () => {
   });
   return response.data;
 };
+
+export const updateUserProfile = async (userData: {
+  name: string;
+  password?: string;
+}) => {
+  const response = await axios.put(`${API_URL}/update`, userData, {
+    withCredentials: true, // Include credentials (cookies) in the request
+  });
+  return response.data;
+};

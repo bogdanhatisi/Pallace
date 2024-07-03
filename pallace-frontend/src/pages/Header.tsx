@@ -1,11 +1,15 @@
+// Header.tsx
 import React, { useCallback, useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import "./Header.css";
 import { logoutUser } from "../services/userService";
+import Profile from "./Profile";
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState<string>("");
+  const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
+
   const fetchUserData = useCallback(async () => {
     try {
       const response = await fetch(
@@ -40,6 +44,14 @@ const Header: React.FC = () => {
     navigate("/home");
   };
 
+  const toggleProfile = () => {
+    setIsProfileOpen(!isProfileOpen);
+  };
+
+  const handleProfileUpdate = async () => {
+    await fetchUserData(); // Refresh user data
+  };
+
   useEffect(() => {
     fetchUserData();
   }, [fetchUserData]);
@@ -63,10 +75,22 @@ const Header: React.FC = () => {
       </nav>
       <div className="header-icons">
         <span className="user-name">{userName}</span>
-        <img src="/user-icon.svg" alt="User Profile" className="icon" />
+        <img
+          src="/user-icon.svg"
+          alt="User Profile"
+          className="icon"
+          onClick={toggleProfile}
+        />
         <button className="logout-button" onClick={handleLogout}>
           Logout
         </button>
+        {isProfileOpen && (
+          <Profile
+            onClose={toggleProfile}
+            onProfileUpdate={handleProfileUpdate} // Pass the callback
+            userName={userName}
+          />
+        )}
       </div>
     </header>
   );

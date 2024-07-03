@@ -49,12 +49,15 @@ const TransactionHistory: React.FC = () => {
             {transactions.map((transaction, index) => (
               <tr key={index} className={transaction.type.toLowerCase()}>
                 <td>{new Date(transaction.createdAt).toLocaleDateString()}</td>
-                <td>{transaction.type === "RECEIVED" ? "SENT" : "RECEIVED"}</td>
+                <td>{transaction.type === "RECEIVED" ? "RECEIVED" : "SENT"}</td>
                 <td>{transaction.category || "N/A"}</td>
                 <td>{transaction.filePath.split("\\").pop()}</td>
                 <td>
                   <a
-                    href={`http://localhost:8000/api/storage/${transaction.filePath}`}
+                    href={`http://localhost:8000/api/storage/${transaction.filePath
+                      .split("\\")
+                      .slice(-2)
+                      .join("/")}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

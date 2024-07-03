@@ -26,9 +26,9 @@ th {
 }
 
 tr.received {
-  background-color: #e0ffe0;
+  background-color: #ffe0e0;
 }
 
 tr.sent {
-  background-color: #ffe0e0;
+  background-color: #e0ffe0;
 }

@@ -1,9 +1,16 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import bcrypt from 'bcrypt';
 import prisma from '../utils/prisma';
-import { CreateUserInput, LoginUserInput } from '../models/user.model';
-
+import {
+  CreateUserInput,
+  LoginUserInput,
+  UpdateUserInput
+} from '../models/user.model';
+import fs from 'fs';
+import util from 'util';
 const SALT_ROUNDS = 10;
+const writeFile = util.promisify(fs.writeFile);
+import path from 'path';
 
 export async function createUser(
   req: FastifyRequest<{
@@ -82,4 +89,35 @@ export async function getUsers(req: FastifyRequest, reply: FastifyReply) {
 export async function logout(req: FastifyRequest, reply: FastifyReply) {
   reply.clearCookie('access_token');
   return reply.send({ message: 'Logout successful' });
+}
+
+export async function updateUser(
+  req: FastifyRequest<{
+    Body: UpdateUserInput;
+  }>,
+  reply: FastifyReply
+) {
+  const { name, password } = req.body;
+  const userId = req.user.id; // Assuming you have a middleware that adds the user ID to the request object
+
+  try {
+    let hash;
+    if (password) {
+      hash = await bcrypt.hash(password, SALT_ROUNDS);
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        id: userId
+      },
+      data: {
+        name,
+        ...(password && { password: hash }) // Only update the password if it's provided
+      }
+    });
+
+    return reply.code(200).send(updatedUser);
+  } catch (e) {
+    return reply.code(500).send(e);
+  }
 }
