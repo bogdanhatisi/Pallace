@@ -33,7 +33,7 @@
 <img src="https://github.com/bogdanhatisi/Pallace/blob/main/predict.gif">
 
 ## 3. Keeping track of relevant metrics 📊 <a name="metrics"></a>
-<h3>The dashboard offers a clear view of the relevant financial metrics, such as cash flow, net profit margins, burn rate and expenses</h3>
+<h3>The dashboard offers a clear view of the relevant financial metrics, such as cash flow, net profit margins, burn rate and expenses.</h3>
 <img src="https://github.com/bogdanhatisi/Pallace/blob/main/1.jpeg" width=70%/>
 <h3>And the pie chart provides a visual representation of the distribution of total expenses across all categories.</h3>
 <img src="https://github.com/bogdanhatisi/Pallace/blob/main/2.jpeg" width=70%/>
