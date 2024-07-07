@@ -1,16 +1,12 @@
 # <img src="https://github.com/bogdanhatisi/Pallace/blob/main/pallace-frontend/public/logo.png" width=50px/> Pallace
-<img src="https://github.com/bogdanhatisi/Pallace/blob/main/1.jpeg"/>
-
 # Table of Contents
 
 1. [Overview](#overview)
 2. [Features](#features)
-   - [Manage Invoices](#manage-invoices)
-
-
-
+   - [Manage Invoices](##manage-invoices)
 
 # Overview
+<img src="https://github.com/bogdanhatisi/Pallace/blob/main/1.jpeg"/>
 <ul>
 <li>💵Pallace is a modern financial management dashboard that aims to help startups.</li>
 <li>📊The application provides a comprehensive overview of financial health by tracking metrics such as cash flow, net profit margins, and burn rate</li>
