@@ -17,4 +17,4 @@
 <img src="https://github.com/bogdanhatisi/Pallace/blob/main/invoice.gif"/>
 
 <h3><b>Above we can see the following sample invoice being uploaded and processed correctly:</b></h3>
-<img src="https://github.com/bogdanhatisi/Pallace/blob/main/sample_invoice_1.png"/> 
+<img src="https://github.com/bogdanhatisi/Pallace/blob/main/sample_invoice_1.png" width=50%/> 
