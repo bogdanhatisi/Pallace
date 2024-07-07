@@ -14,7 +14,7 @@
 <img src="https://github.com/bogdanhatisi/Pallace/blob/main/1.jpeg"/>
 <ul>
 <li>🏛️Pallace is a modern financial management dashboard that aims to help startups.</li>
-<li>📊The application provides a comprehensive overview of financial health by tracking metrics such as cash flow, net profit margins, and burn rate</li>
+<li>📊The application provides a comprehensive overview of financial health by tracking metrics such as cash flow, net profit margins, and burn rate.</li>
 <li>📈A key feature of the dashboard is its prediction capability, which uses historical data to forecast future financial trends, aiding startups in proactive decision-making.</li>
 </ul>
 
