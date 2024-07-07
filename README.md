@@ -3,7 +3,7 @@
 
 1. [Overview](#overview)
 2. [Features](#features)
-   - [Manage Invoices](##manage-invoices)
+   - [Manage Invoices](#manage-invoices)
 
 # Overview
 <img src="https://github.com/bogdanhatisi/Pallace/blob/main/1.jpeg"/>
@@ -15,7 +15,7 @@
 
 # Features
 
-## Manage Invoices 🧾
+## Manage Invoices 🧾  <a name="manage-invoices"></a>
 <h3>Users can easily upload, process and manage their invoices in the dedicated invoice tab.</h3>
 
 <img src="https://github.com/bogdanhatisi/Pallace/blob/main/invoice.gif"/>
